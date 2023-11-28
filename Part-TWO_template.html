@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Morteza Jafari" />
+
+<meta name="date" content="2023-11-11" />
+
+<title>Part-TWO: Bioinformatics Assignment</title>
+
+<script src="Part-TWO_template_files/header-attrs-2.25/header-attrs.js"></script>
+<script src="Part-TWO_template_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="Part-TWO_template_files/bootstrap-3.3.5/css/cerulean.min.css" rel="stylesheet" />
+<script src="Part-TWO_template_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="Part-TWO_template_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="Part-TWO_template_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="Part-TWO_template_files/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="Part-TWO_template_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="Part-TWO_template_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="Part-TWO_template_files/navigation-1.1/tabsets.js"></script>
+<link href="Part-TWO_template_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="Part-TWO_template_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Part-TWO: Bioinformatics Assignment</h1>
+<h4 class="author">Morteza Jafari</h4>
+<h4 class="date">2023-11-11</h4>
+
+</div>
+
+
+<style type="text/css">
+/* Set the background to a soft pastel and adjust text color for readability */
+body {
+  background-color: #f4f8fb; /* A soft pastel-like background color */
+  color: #3a3a3a; /* A darker text color for better readability */
+}
+
+/* Main content font size */
+p {
+  font-size: 18px; /* Adjust the size as needed */
+}
+
+/* Define the font family for all headers and use the original Cerulean color */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* Style main section titles (h2) */
+h1 {
+  font-size: 30px; /* A larger font size for main titles */
+  font-weight: bold; /* Make the titles thicker */
+  margin-top: 20px;
+  margin-bottom: 10px;
+  padding-bottom: 2px;
+}
+
+/* Style main section titles (h2) */
+h3 {
+  font-size: 30px; /* A larger font size for main titles */
+  font-weight: bold; /* Make the titles thicker */
+  margin-top: 20px;
+  margin-bottom: 10px;
+  padding-bottom: 2px;
+}
+
+/* Additional styles can go here */
+
+</style>
+<div id="introduction" class="section level1">
+<h1>INTRODUCTION</h1>
+<p>This report presents the protocol for analyzing 16S ribosomal RNA
+gene sequencing data, with an emphasis on methodological precision in
+investigating microbial communities. The initial phase of the study
+addresses data processing, where selected samples or Amplicon Sequence
+Variants (ASVs) are filtered out to meet quality criteria for analysis.
+The processed data are then subject to exploratory data analysis methods
+to profile microbial diversity and abundance. Subsequent sections detail
+the use of statistical techniques to assess the significance of observed
+patterns within microbial datasets. The report aims to provide an
+outline of the analytical process and foundational concepts critical to
+microbial ecology research using 16S rRNA gene sequencing.</p>
+<div id="load-libraries" class="section level3">
+<h3>Load Libraries</h3>
+<pre class="r"><code># Create a vector with all the package names you want to load
+packages &lt;- c(&quot;phyloseq&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;, &quot;vegan&quot;, &quot;microbiome&quot;, &quot;ANCOMBC&quot;, &quot;DESeq2&quot;, &quot;MicEco&quot;, &quot;indicspecies&quot;)
+
+# Use lapply to load each package, install if not present
+lapply(packages, function(x) {
+    if (!require(x, character.only = TRUE)) {
+        install.packages(x)
+        library(x, character.only = TRUE)
+    }
+})</code></pre>
+<pre><code>## Loading required package: phyloseq</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Loading required package: data.table</code></pre>
+<pre><code>## Warning: package &#39;data.table&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Loading required package: vegan</code></pre>
+<pre><code>## Warning: package &#39;vegan&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Loading required package: permute</code></pre>
+<pre><code>## Warning: package &#39;permute&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Loading required package: lattice</code></pre>
+<pre><code>## Warning: package &#39;lattice&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## This is vegan 2.6-4</code></pre>
+<pre><code>## Loading required package: microbiome</code></pre>
+<pre><code>## 
+## microbiome R package (microbiome.github.com)
+##     
+## 
+## 
+##  Copyright (C) 2011-2022 Leo Lahti, 
+##     Sudarshan Shetty et al. &lt;microbiome.github.io&gt;</code></pre>
+<pre><code>## 
+## Attaching package: &#39;microbiome&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:vegan&#39;:
+## 
+##     diversity</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     alpha</code></pre>
+<pre><code>## The following object is masked from &#39;package:base&#39;:
+## 
+##     transform</code></pre>
+<pre><code>## Loading required package: ANCOMBC</code></pre>
+<pre><code>## Registered S3 methods overwritten by &#39;treeio&#39;:
+##   method              from    
+##   MRCA.phylo          tidytree
+##   MRCA.treedata       tidytree
+##   Nnode.treedata      tidytree
+##   Ntip.treedata       tidytree
+##   ancestor.phylo      tidytree
+##   ancestor.treedata   tidytree
+##   child.phylo         tidytree
+##   child.treedata      tidytree
+##   full_join.phylo     tidytree
+##   full_join.treedata  tidytree
+##   groupClade.phylo    tidytree
+##   groupClade.treedata tidytree
+##   groupOTU.phylo      tidytree
+##   groupOTU.treedata   tidytree
+##   is.rooted.treedata  tidytree
+##   nodeid.phylo        tidytree
+##   nodeid.treedata     tidytree
+##   nodelab.phylo       tidytree
+##   nodelab.treedata    tidytree
+##   offspring.phylo     tidytree
+##   offspring.treedata  tidytree
+##   parent.phylo        tidytree
+##   parent.treedata     tidytree
+##   root.treedata       tidytree
+##   rootnode.phylo      tidytree
+##   sibling.phylo       tidytree</code></pre>
+<pre><code>## Warning: replacing previous import &#39;mia::left_join&#39; by &#39;dplyr::left_join&#39; when
+## loading &#39;ANCOMBC&#39;</code></pre>
+<pre><code>## Warning: replacing previous import &#39;mia::right_join&#39; by &#39;dplyr::right_join&#39;
+## when loading &#39;ANCOMBC&#39;</code></pre>
+<pre><code>## Loading required package: DESeq2</code></pre>
+<pre><code>## Loading required package: S4Vectors</code></pre>
+<pre><code>## Loading required package: stats4</code></pre>
+<pre><code>## Loading required package: BiocGenerics</code></pre>
+<pre><code>## 
+## Attaching package: &#39;BiocGenerics&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     IQR, mad, sd, var, xtabs</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+##     dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+##     grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+##     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+##     rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+##     union, unique, unsplit, which.max, which.min</code></pre>
+<pre><code>## 
+## Attaching package: &#39;S4Vectors&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:data.table&#39;:
+## 
+##     first, second</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     expand.grid, I, unname</code></pre>
+<pre><code>## Loading required package: IRanges</code></pre>
+<pre><code>## 
+## Attaching package: &#39;IRanges&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:microbiome&#39;:
+## 
+##     coverage</code></pre>
+<pre><code>## The following object is masked from &#39;package:data.table&#39;:
+## 
+##     shift</code></pre>
+<pre><code>## The following object is masked from &#39;package:phyloseq&#39;:
+## 
+##     distance</code></pre>
+<pre><code>## The following object is masked from &#39;package:grDevices&#39;:
+## 
+##     windows</code></pre>
+<pre><code>## Loading required package: GenomicRanges</code></pre>
+<pre><code>## Loading required package: GenomeInfoDb</code></pre>
+<pre><code>## Loading required package: SummarizedExperiment</code></pre>
+<pre><code>## Loading required package: MatrixGenerics</code></pre>
+<pre><code>## Loading required package: matrixStats</code></pre>
+<pre><code>## Warning: package &#39;matrixStats&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## 
+## Attaching package: &#39;MatrixGenerics&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:matrixStats&#39;:
+## 
+##     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+##     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+##     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+##     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+##     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+##     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+##     colWeightedMeans, colWeightedMedians, colWeightedSds,
+##     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+##     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+##     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+##     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+##     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+##     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+##     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+##     rowWeightedSds, rowWeightedVars</code></pre>
+<pre><code>## Loading required package: Biobase</code></pre>
+<pre><code>## Welcome to Bioconductor
+## 
+##     Vignettes contain introductory material; view with
+##     &#39;browseVignettes()&#39;. To cite Bioconductor, see
+##     &#39;citation(&quot;Biobase&quot;)&#39;, and for packages &#39;citation(&quot;pkgname&quot;)&#39;.</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Biobase&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:MatrixGenerics&#39;:
+## 
+##     rowMedians</code></pre>
+<pre><code>## The following objects are masked from &#39;package:matrixStats&#39;:
+## 
+##     anyMissing, rowMedians</code></pre>
+<pre><code>## The following object is masked from &#39;package:phyloseq&#39;:
+## 
+##     sampleNames</code></pre>
+<pre><code>## Loading required package: MicEco</code></pre>
+<pre><code>## Loading required package: indicspecies</code></pre>
+<pre><code>## Warning: package &#39;indicspecies&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## 
+## Attaching package: &#39;indicspecies&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:SummarizedExperiment&#39;:
+## 
+##     coverage</code></pre>
+<pre><code>## The following object is masked from &#39;package:GenomicRanges&#39;:
+## 
+##     coverage</code></pre>
+<pre><code>## The following object is masked from &#39;package:IRanges&#39;:
+## 
+##     coverage</code></pre>
+<pre><code>## The following object is masked from &#39;package:microbiome&#39;:
+## 
+##     coverage</code></pre>
+<pre><code>## [[1]]
+## NULL
+## 
+## [[2]]
+## NULL
+## 
+## [[3]]
+## NULL
+## 
+## [[4]]
+## NULL
+## 
+## [[5]]
+## NULL
+## 
+## [[6]]
+## NULL
+## 
+## [[7]]
+## NULL
+## 
+## [[8]]
+## NULL
+## 
+## [[9]]
+## NULL</code></pre>
+</div>
+</div>
+<div id="phyloseq-object" class="section level1">
+<h1>PHYLOSEQ OBJECT</h1>
+<pre class="r"><code># setwd
+setwd(&quot;D:/LiU/Masters/Bioinformatics/Microbiome/Part_Two/&quot;)
+
+count_tab &lt;- read.table(&quot;D:/LiU/Masters/Bioinformatics/Microbiome/Part_Two/Data/ASVs_counts.txt&quot;, header=T, row.names=1, check.names=F) 
+tax_tab &lt;- as.matrix(read.table(&quot;D:/LiU/Masters/Bioinformatics/Microbiome/Part_Two/Data/ASVs_taxonomy.txt&quot;, header=T, row.names=1, check.names=F, na.strings=&quot;&quot;, sep=&quot;\t&quot;))
+data&lt;-read.csv(&quot;D:/LiU/Masters/Bioinformatics/Microbiome/Part_Two/Data/metadata1.csv&quot;,row.names=1)
+
+#create a phyloseq object. We will call the phyloseq object &quot;ps&quot;.
+ps &lt;- phyloseq(otu_table(count_tab, taxa_are_rows=TRUE),
+      tax_table(tax_tab),
+      sample_data(data))
+ps</code></pre>
+<pre><code>## phyloseq-class experiment-level object
+## otu_table()   OTU Table:         [ 557 taxa and 60 samples ]
+## sample_data() Sample Data:       [ 60 samples by 2 sample variables ]
+## tax_table()   Taxonomy Table:    [ 557 taxa by 7 taxonomic ranks ]</code></pre>
+<pre class="r"><code># explore the data
+ntaxa(ps)</code></pre>
+<pre><code>## [1] 557</code></pre>
+<pre class="r"><code>nsamples(ps)</code></pre>
+<pre><code>## [1] 60</code></pre>
+<pre class="r"><code>sample_names(ps)</code></pre>
+<pre><code>##  [1] &quot;1001-1v&quot; &quot;1003-1v&quot; &quot;1005-1v&quot; &quot;1006-1v&quot; &quot;1008-1v&quot; &quot;1009-1v&quot; &quot;1010-1v&quot;
+##  [8] &quot;1011-1v&quot; &quot;1012-1v&quot; &quot;1014-1v&quot; &quot;1015-1v&quot; &quot;1016-1v&quot; &quot;1017-1v&quot; &quot;1018-1v&quot;
+## [15] &quot;1019-1v&quot; &quot;1020-1v&quot; &quot;1021-1v&quot; &quot;1023-1v&quot; &quot;1024-1v&quot; &quot;1025-1v&quot; &quot;1026-1v&quot;
+## [22] &quot;1028-1v&quot; &quot;1029-1v&quot; &quot;103-1v&quot;  &quot;1030-1v&quot; &quot;1031-1v&quot; &quot;1032-1v&quot; &quot;1033-1v&quot;
+## [29] &quot;1034-1v&quot; &quot;1035-1v&quot; &quot;1036-1v&quot; &quot;105-1v&quot;  &quot;106-1v&quot;  &quot;107-1v&quot;  &quot;108-1v&quot; 
+## [36] &quot;110-1v&quot;  &quot;112-1v&quot;  &quot;113-1v&quot;  &quot;114-1v&quot;  &quot;115-1v&quot;  &quot;116-1v&quot;  &quot;117-1v&quot; 
+## [43] &quot;119-1v&quot;  &quot;120-1v&quot;  &quot;121-1v&quot;  &quot;122-1v&quot;  &quot;124-1v&quot;  &quot;129-1v&quot;  &quot;130-1v&quot; 
+## [50] &quot;131-1v&quot;  &quot;132-1v&quot;  &quot;133-1v&quot;  &quot;134-1v&quot;  &quot;135-1v&quot;  &quot;203-1v&quot;  &quot;204-1v&quot; 
+## [57] &quot;208-1v&quot;  &quot;209-1v&quot;  &quot;211-1v&quot;  &quot;215-1v&quot;</code></pre>
+<pre class="r"><code>rank_names(ps)</code></pre>
+<pre><code>## [1] &quot;Kingdom&quot; &quot;Phylum&quot;  &quot;Class&quot;   &quot;Order&quot;   &quot;Family&quot;  &quot;Genus&quot;   &quot;Species&quot;</code></pre>
+<pre class="r"><code>sample_variables(ps)</code></pre>
+<pre><code>## [1] &quot;Term&quot;      &quot;Timepoint&quot;</code></pre>
+</div>
+<div id="preprocessing" class="section level1">
+<h1>PREPROCESSING</h1>
+<div id="remove-unclassified-asvs" class="section level3">
+<h3>Remove unclassified ASVs</h3>
+<pre class="r"><code># we will
+ps1&lt;-subset_taxa(ps, Kingdom == &quot;Bacteria&quot; &amp; 
+                   Family!= &quot;mitochondria&quot; &amp;
+                   Phylum != &quot;Cyanobacteria&quot; &amp;
+                   Phylum != &quot;NA&quot; &amp;
+                   Order != &quot;Chloroplast&quot;)
+
+# check how many taxa are left after the pre-processing
+ps1</code></pre>
+<pre><code>## phyloseq-class experiment-level object
+## otu_table()   OTU Table:         [ 529 taxa and 60 samples ]
+## sample_data() Sample Data:       [ 60 samples by 2 sample variables ]
+## tax_table()   Taxonomy Table:    [ 529 taxa by 7 taxonomic ranks ]</code></pre>
+</div>
+<div id="normalisation-of-library-size-remove-samples"
+class="section level3">
+<h3>Normalisation of library size (Remove Samples)</h3>
+<pre class="r"><code># load package
+library(phyloseq)
+
+# An easy way to graphically identify samples with an even sequence depth is with a bar plot showing the number of reads per sample.
+PlotBar &lt;- plot_bar(ps1)+ geom_bar(stat = &quot;identity&quot;, position = &quot;stack&quot;)
+PlotBar</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/plotBar-1.png" width="100%" />
+<span style="color: red;"><strong>Question 1</strong></span>: do the
+samples have an even distribution of reads? Based on this plot, would
+you remove any sample?</p>
+<p><span style="color: green;"><strong>Answer</strong></span>: The
+distribution of reads across the samples is uneven. The read counts vary
+significantly, indicating that some samples have much higher sequencing
+depth than others. Such discrepancies can influence the outcome of
+comparative analyses and may necessitate normalization or other
+statistical adjustments.</p>
+<p>With regards to whether any samples should be removed based on this
+plot, it would be prudent to consider excluding samples with
+exceptionally low read counts. For example, the samples at the lower end
+of the distribution, particularly those with read counts significantly
+lower than the median or mean of the dataset, may not provide reliable
+data for analysis due to insufficient sequencing depth. Samples such as
+<code>110-1v</code>, <code>204-1v</code>, <code>131-1v</code>, and
+<code>130-1v</code>, which have read counts less than 1,000, are likely
+candidates for removal. If a threshold is set at 10,000 reads based on
+common practices in the field, samples below this threshold would be
+removed. This includes samples such as <code>110-1v</code> and
+<code>204-1v</code>, which have read counts far below this level,
+indicating they may not be suitable for further analysis.</p>
+<pre class="r"><code># summarize the total reads per sample 
+sort(sample_sums(ps1))</code></pre>
+<pre><code>##  110-1v  204-1v  131-1v  130-1v  203-1v  135-1v  134-1v  211-1v  215-1v  124-1v 
+##     382     452     655     730     794     990     995    1022    1190    3153 
+##  122-1v  115-1v  106-1v  116-1v  112-1v  120-1v 1035-1v  119-1v  113-1v  103-1v 
+##    4095    4782    5892    7390    8029    8783   10590   17804   20655   23316 
+##  208-1v  129-1v 1032-1v  121-1v 1028-1v  209-1v 1019-1v  108-1v 1030-1v  105-1v 
+##   23560   25241   25298   25680   27745   28428   29861   30298   30395   30779 
+##  132-1v  107-1v 1018-1v 1029-1v 1001-1v 1012-1v 1021-1v 1011-1v 1031-1v  133-1v 
+##   34080   34914   35266   36475   40865   44626   44818   45360   46928   48123 
+## 1015-1v 1024-1v 1010-1v 1005-1v 1023-1v 1017-1v 1003-1v 1016-1v 1006-1v 1025-1v 
+##   48385   50665   51145   52239   52317   55027   55801   56519   57583   58446 
+## 1009-1v 1026-1v 1014-1v 1034-1v 1008-1v  114-1v 1020-1v  117-1v 1036-1v 1033-1v 
+##   60503   62640   63789   66800   67391   69491   75694   84613   85576  112791</code></pre>
+<pre class="r"><code># visualize distribution of samples sequencing depth
+sdt = data.table(as(sample_data(ps1), &quot;data.frame&quot;),
+   TotalReads = sample_sums(ps1), keep.rownames = TRUE)
+setnames(sdt, &quot;rn&quot;, &quot;SampleID&quot;)
+
+ggplot(sdt, aes(x = TotalReads)) + 
+  geom_histogram(color = &quot;black&quot;, fill = &quot;indianred&quot;, binwidth = 2500) +
+  ggtitle(&quot;Distribution of sample sequencing depth&quot;) + 
+  xlab(&quot;Read counts&quot;) </code></pre>
+<p><img src="Part-TWO_template_files/figure-html/unnamed-chunk-2-1.png" width="100%" /></p>
+<pre class="r"><code>  theme(axis.title.y = element_blank())</code></pre>
+<pre><code>## List of 1
+##  $ axis.title.y: list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  - attr(*, &quot;class&quot;)= chr [1:2] &quot;theme&quot; &quot;gg&quot;
+##  - attr(*, &quot;complete&quot;)= logi FALSE
+##  - attr(*, &quot;validate&quot;)= logi TRUE</code></pre>
+<pre class="r"><code># visualize the sequencing depth by variable of interest. In this example &quot;batch&quot;
+pSeqDepth = ggplot(sdt, aes(TotalReads)) + geom_histogram(bins = 20) + ggtitle(&quot;Sequencing Depth&quot;) + facet_wrap(~Term)
+pSeqDepth</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/unnamed-chunk-2-2.png" width="100%" /></p>
+<p><span style="color: red;"><strong>Question 2</strong></span>: <br>
+Why shouldn’t samples with a poor sequencing depth be considered for
+subsequent analyses? <br> Are there any samples that should be removed
+or rarefied? Which ones, and why? <br> Can you find any biological
+explanation to why some samples have so few reads? <br> Use the previous
+plots and <code>sample_sums()</code> to decide which sampels you want to
+remove <br></p>
+<p><span style="color: green;"><strong>Answer</strong></span>: Samples
+with poor sequencing depth should not be considered for subsequent
+analyses for several reasons:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Low Statistical Power</strong>: Low read counts can
+result in insufficient statistical power to detect true biological
+variations. This is particularly important when identifying
+low-abundance taxa, which may not be detected in samples with low
+sequencing depth.</p></li>
+<li><p><strong>Bias</strong>: Poor sequencing depth can lead to a biased
+estimation of community composition and diversity. High-abundance taxa
+may be overrepresented because they are more likely to be captured even
+with fewer reads, while rare taxa may be missed entirely.</p></li>
+<li><p><strong>Comparative Analysis</strong>: In studies comparing
+microbial communities across samples, having a uniform sequencing depth
+is critical. Large disparities in sequencing depth can affect alpha and
+beta diversity measures and lead to misleading conclusions.</p></li>
+<li><p><strong>Normalization Challenges</strong>: Although there are
+methods to normalize read counts across samples, these may not be
+reliable when the sequencing depth is very low, as the normalization
+itself can introduce biases.</p></li>
+</ol>
+<p>Based on the histogram plots and the <code>sample_sums()</code>
+function output, samples that should be considered for removal or
+rarefaction are those with significantly lower read counts compared to
+the rest of the samples. Based on the read count data and a threshold of
+10,000 reads, the following samples fall below this threshold and should
+be considered for removal or rarefaction:</p>
+<ul>
+<li><code>110-1v</code> (424 reads)</li>
+<li><code>204-1v</code> (452 reads)</li>
+<li><code>131-1v</code> (655 reads)</li>
+<li><code>130-1v</code> (782 reads)</li>
+<li><code>203-1v</code> (883 reads)</li>
+<li><code>135-1v</code> (990 reads)</li>
+<li><code>134-1v</code> (995 reads)</li>
+<li><code>211-1v</code> (1022 reads)</li>
+<li><code>215-1v</code> (1190 reads)</li>
+<li><code>124-1v</code> (3153 reads)</li>
+<li><code>122-1v</code> (4095 reads)</li>
+<li><code>115-1v</code> (4782 reads)</li>
+<li><code>106-1v</code> (5913 reads)</li>
+<li><code>116-1v</code> (7392 reads)</li>
+<li><code>112-1v</code> (8029 reads)</li>
+<li><code>120-1v</code> (8783 reads)</li>
+</ul>
+<p>These samples have sequencing depths that are markedly lower than the
+others, which can adversely affect the reliability of downstream
+analyses due to the reasons discussed earlier.</p>
+<p>As for a biological explanation for why some samples have so few
+reads, there could be several factors:</p>
+<ul>
+<li><strong>Sample Quality</strong>: DNA degradation or the presence of
+inhibitors during extraction can lead to lower yields of amplifiable
+DNA.</li>
+<li><strong>Variability in Sample Collection</strong>: Differences in
+how the samples were collected and processed can lead to variability in
+DNA concentration.</li>
+<li><strong>Technical Issues</strong>: Issues such as uneven PCR
+amplification, sequencing errors, or problems with the sequencing
+platform can result in a lower number of reads.</li>
+<li><strong>Biological Diversity</strong>: Some samples may inherently
+have less microbial biomass or lower diversity, which could lead to
+fewer reads being obtained.</li>
+</ul>
+<pre class="r"><code># We will fro examle remove all the samples with less than 10000 reads. 
+# you can change number of reads to your convenience.
+ps2 &lt;- prune_samples(sample_sums(ps1)&gt;=10000, ps1) 
+
+# check how many samples do you have now
+ps2</code></pre>
+<pre><code>## phyloseq-class experiment-level object
+## otu_table()   OTU Table:         [ 529 taxa and 44 samples ]
+## sample_data() Sample Data:       [ 44 samples by 2 sample variables ]
+## tax_table()   Taxonomy Table:    [ 529 taxa by 7 taxonomic ranks ]</code></pre>
+<pre class="r"><code># To rarefy selected samples. 
+# for other datasets or other decisions, here you must change the sample name (&quot;1036-1v&quot;,&quot;1033-1v&quot;&quot;) and the number of reds to be rarefied to (84613).
+asv = as(otu_table(ps2), &quot;matrix&quot;)
+asvt&lt;-as.data.frame(t(asv))
+rare&lt;-asvt[c(&quot;1036-1v&quot;,&quot;1033-1v&quot;),] # change sample(s) name
+asvt&lt;-asvt[!row.names(asvt) %in% row.names(rare),]
+set.seed(3683)
+asv.rare&lt;-rrarefy(rare,84613) # change number of reads</code></pre>
+<pre><code>## Warning in rrarefy(rare, 84613): function should be used for observed counts,
+## but smallest count is 2</code></pre>
+<pre class="r"><code>asv.rare&lt;-rbind(asvt,asv.rare)
+
+# construct the phyloseq object with the rarefied samples
+ps3 &lt;- phyloseq(otu_table(t(asv.rare), taxa_are_rows=TRUE), 
+                sample_data(data), 
+                tax_table(tax_tab))
+
+# unless we clearly specify it, taxa with no counts will be still left.
+# Here we remove all taxa (if any) that has no counts after the rarefaction.
+ps3&lt;- prune_taxa(taxa_sums(ps3) &gt; 0, ps3)
+
+# summarize the outcome of pre-processing
+sum(sample_sums(ps3)) # total of reads </code></pre>
+<pre><code>## [1] 2019379</code></pre>
+<pre class="r"><code>ps3</code></pre>
+<pre><code>## phyloseq-class experiment-level object
+## otu_table()   OTU Table:         [ 477 taxa and 44 samples ]
+## sample_data() Sample Data:       [ 44 samples by 2 sample variables ]
+## tax_table()   Taxonomy Table:    [ 477 taxa by 7 taxonomic ranks ]</code></pre>
+<pre class="r"><code>sort(sample_sums(ps3))</code></pre>
+<pre><code>## 1035-1v  119-1v  113-1v  103-1v  208-1v  129-1v 1032-1v  121-1v 1028-1v  209-1v 
+##   10590   17804   20655   23316   23560   25241   25298   25680   27745   28428 
+## 1019-1v  108-1v 1030-1v  105-1v  132-1v  107-1v 1018-1v 1029-1v 1001-1v 1012-1v 
+##   29861   30298   30395   30779   34080   34914   35266   36475   40865   44626 
+## 1021-1v 1011-1v 1031-1v  133-1v 1015-1v 1024-1v 1010-1v 1005-1v 1023-1v 1017-1v 
+##   44818   45360   46928   48123   48385   50665   51145   52239   52317   55027 
+## 1003-1v 1016-1v 1006-1v 1025-1v 1009-1v 1026-1v 1014-1v 1034-1v 1008-1v  114-1v 
+##   55801   56519   57583   58446   60503   62640   63789   66800   67391   69491 
+## 1020-1v  117-1v 1036-1v 1033-1v 
+##   75694   84613   84613   84613</code></pre>
+<pre class="r"><code>data.table(summarize_phyloseq(ps3)) </code></pre>
+<pre><code>## Compositional = NO2</code></pre>
+<pre><code>## 1] Min. number of reads = 105902] Max. number of reads = 846133] Total number of reads = 20193794] Average number of reads = 45894.97727272735] Median number of reads = 461447] Sparsity = 0.9622641509433966] Any OTU sum to 1 or less? YES8] Number of singletons = 149] Percent of OTUs that are singletons 
+##         (i.e. exactly one read detected across all samples)2.9350104821802910] Number of sample variables are: 2TermTimepoint2</code></pre>
+<pre><code>##                                                                                                                       V1
+##  1:                                                                                      1] Min. number of reads = 10590
+##  2:                                                                                      2] Max. number of reads = 84613
+##  3:                                                                                   3] Total number of reads = 2019379
+##  4:                                                                        4] Average number of reads = 45894.9772727273
+##  5:                                                                                    5] Median number of reads = 46144
+##  6:                                                                                      7] Sparsity = 0.962264150943396
+##  7:                                                                                     6] Any OTU sum to 1 or less? YES
+##  8:                                                                                         8] Number of singletons = 14
+##  9: 9] Percent of OTUs that are singletons \n        (i.e. exactly one read detected across all samples)2.93501048218029
+## 10:                                                                                10] Number of sample variables are: 2
+## 11:                                                                                                       Term,Timepoint</code></pre>
+<p><span style="color: red;"><strong>Question 3</strong></span>: Provide
+a summary of the IN and OUT for each preprocessing step: <br> - total
+number of reads IN and OUT. You can use for example
+<code>sum(otu_table(ps3))</code> or
+<code>sum(sample_sums(phyloseq_object))</code><br> - total number of
+ASVs IN and OUT . ASV corresponds to taxa in the phyloseq object, you
+can simpoly do <code>pyloseq_object</code><br> - number of samples
+removed, did they belong to the same group (variable of interest)?</p>
+<p><span style="color: green;"><strong>Answer</strong></span>: To answer
+these question, the following operations were performed.</p>
+<ol style="list-style-type: decimal">
+<li>Summing the total read counts across all samples both before and
+after the removal of samples with low read counts.</li>
+<li>Counting the total number of ASVs (taxa) both before and after the
+removal.</li>
+<li>Identifying the number of samples removed and determining if they
+belong to the same group based on the variable of interest.</li>
+</ol>
+<ul>
+<li>The total number of reads ‘IN’ (before any samples were removed) was
+2,099,141.</li>
+<li>The total number of reads ‘OUT’ (after removing samples with less
+than 10,000 reads) was 2,049,601.</li>
+<li>The total number of ASVs ‘IN’ (before any samples were removed) was
+557.</li>
+<li>The total number of ASVs ‘OUT’ (after removal of low read count
+samples and ASVs not present in the remaining samples) was 498.</li>
+<li>Number of samples removed: 16 samples were removed, and as
+previously determined, they all belonged to the same group (‘Preterm’)
+and timepoint (‘week1’).</li>
+</ul>
+</div>
+<div id="prevalence-filtering-remove-taxa" class="section level3">
+<h3>Prevalence filtering (Remove Taxa)</h3>
+<p>It is usually a good idea to remove ASVs that have a very low
+prevalence and when detected they have very few reads. This is a measure
+to remove potential contaminants and also ASVs with a small mean and
+large coefficient of variance (i.e. “noise”) that will influence the
+downstream statistical analyses. <br> Filtering out low abundance taxa,
+for instance, will prevent spurious diversity to be considered in your
+dataset. <br> Remember <span style="color: red;">filtering is often
+subjective</span>. You should be honest about that and keep focused on
+your goal, but always justify and keep a record for your decision for
+filtering.</p>
+<pre class="r"><code># Plot a histogram of counts per ASV.
+# The Histogram shows the number of taxa (count) according to the number of reads (TotalReads) across samples. 
+tdt = data.table(tax_table(ps3),
+   TotalReads = taxa_sums(ps3),
+   OTU = taxa_names(ps3))</code></pre>
+<pre><code>## Warning in setDT(value): Some columns are a multi-column type (such as a matrix
+## column): [1, 2, 3, 4, 5, 6, 7]. setDT will retain these columns as-is but
+## subsequent operations like grouping and joining may fail. Please consider
+## as.data.table() instead which will create a new column for each embedded
+## column.</code></pre>
+<pre><code>## Warning in setDT(ans, key = key): Some columns are a multi-column type (such as
+## a matrix column): [1, 2, 3, 4, 5, 6, 7]. setDT will retain these columns as-is
+## but subsequent operations like grouping and joining may fail. Please consider
+## as.data.table() instead which will create a new column for each embedded
+## column.</code></pre>
+<pre class="r"><code>ggplot(tdt, aes(TotalReads)) + scale_x_log10() + 
+ geom_histogram (bins=100) + 
+ ggtitle(&quot;Histogram of Total Counts&quot;)</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/prevalence-1.png" width="100%" /></p>
+<pre class="r"><code># Here we will remove ASVs detected in only 1 sample and with less than 30 reads.
+
+#First we will count the ASVs prevalence
+prev1 = apply(X = otu_table(ps3),
+              MARGIN = 1,
+              FUN = function(x){sum(x &gt; 0)})
+# Then we will create a table including the prevalence, the total abundance, and the taxonomy.
+prev1 = data.frame(Prevalence = prev1,
+                   TotalAbundance = taxa_sums(ps3),
+                   tax_table(ps3))
+
+# We define the ASVs we want to keep: prevalence&gt;=1 with &gt; 30 reads.
+keepTaxa = rownames(prev1)[(prev1$Prevalence &gt;= 1) &amp; (prev1$TotalAbundance &gt; 30)]
+ps4 = prune_taxa(keepTaxa, ps3)
+
+ps4</code></pre>
+<pre><code>## phyloseq-class experiment-level object
+## otu_table()   OTU Table:         [ 363 taxa and 44 samples ]
+## sample_data() Sample Data:       [ 44 samples by 2 sample variables ]
+## tax_table()   Taxonomy Table:    [ 363 taxa by 7 taxonomic ranks ]</code></pre>
+<pre class="r"><code># check the distributions of total reds per taxa again. Has it changed? Were taxa with few total reads filtered out?
+tdt = data.table(tax_table(ps4),
+   TotalReads = taxa_sums(ps4),
+   OTU = taxa_names(ps4))</code></pre>
+<pre><code>## Warning in setDT(value): Some columns are a multi-column type (such as a matrix
+## column): [1, 2, 3, 4, 5, 6, 7]. setDT will retain these columns as-is but
+## subsequent operations like grouping and joining may fail. Please consider
+## as.data.table() instead which will create a new column for each embedded
+## column.
+
+## Warning in setDT(value): Some columns are a multi-column type (such as a matrix
+## column): [1, 2, 3, 4, 5, 6, 7]. setDT will retain these columns as-is but
+## subsequent operations like grouping and joining may fail. Please consider
+## as.data.table() instead which will create a new column for each embedded
+## column.</code></pre>
+<pre class="r"><code>ggplot(tdt, aes(TotalReads)) + scale_x_log10() + 
+ geom_histogram (bins=100) + 
+ ggtitle(&quot;Histogram of Total Counts&quot;)</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/prevalence-2.png" width="100%" /></p>
+<p><span style="color: red;"><strong>Question 4</strong></span>: Why do
+we want to remove low prevalence reads? How many taxa were “lost” after
+the prevalence filtering?</p>
+<p><span style="color: green;"><strong>Answer</strong></span>:Low
+prevalence reads are typically removed from a dataset for several
+reasons:</p>
+<ul>
+<li>Noise Reduction: Low prevalence reads might represent sequencing
+errors, contamination, or rare organisms that are not statistically
+significant to the study. Removing them can reduce noise and improve the
+signal-to-noise ratio in the data.</li>
+<li>Statistical Power: By focusing on taxa with higher prevalence,
+statistical analyses can be more robust and less prone to the influence
+of spurious data.</li>
+<li>Computational Efficiency: Filtering out low prevalence reads can
+streamline subsequent computational analyses, as there are fewer
+variables to consider which can be particularly beneficial for large
+datasets.</li>
+<li>Biological Relevance: In many cases, taxa that are not prevalent
+across multiple samples may not be relevant to the central questions of
+the study, particularly in ecological or comparative studies where the
+focus is on dominant or significant community members.</li>
+</ul>
+<p>Before the prevalence filtering, there were 557 taxa in the dataset.
+After applying the filtering criteria — removing taxa that appear in
+only one sample or with fewer than 30 reads — the number of taxa was
+reduced to 107. This means that 450 taxa were “lost” or removed as a
+result of this filtering process. This substantial reduction highlights
+the importance of the prevalence filter in focusing the analysis on more
+commonly observed and potentially biologically relevant taxa.</p>
+</div>
+<div id="summary-of-preprocessiing" class="section level3">
+<h3>SUMMARY OF PREPROCESSIING</h3>
+<p>Considerations for your dataset: Check if you have an imbalanced
+dataset and act accordingly. <br> For instance, you may need to filter
+out samples of a very poor sequencing depth compared to the rest of the
+samples in the dataset or to use a rarefaction process to normalise the
+number of reads per sample (of all or some samples). <br> Use the graphs
+and table with sorted number of reads to decide what is a reasonable
+number of reads/sample.</p>
+</div>
+</div>
+<div id="microbial-community-composition" class="section level1">
+<h1>MICROBIAL COMMUNITY COMPOSITION</h1>
+<pre class="r"><code># bar chart using Categories
+pseq.fam &lt;- aggregate_rare(ps4, level=&quot;Family&quot;, detection = 500, prevalence = 2/10)
+p.fam &lt;- plot_composition(pseq.fam, sample.sort = NULL, 
+    otu.sort = NULL,
+    group_by = &quot;Term&quot;,
+    plot.type = &quot;barplot&quot;,
+    verbose = FALSE) + 
+ theme_bw() + scale_fill_brewer(&quot;Family&quot;, palette = &quot;Paired&quot;)
+p.fam</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/tax-fam-count-1.png" width="100%" /></p>
+<p><span style="color: red;"><strong>Question 5</strong></span>: why the
+abundance differs that much across samples? Can you notice some
+difference already between the two groups?</p>
+<p><span style="color: green;"><strong>Answer</strong></span>:
+Variability in microbial abundance across samples can be attributed to
+several factors.</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Biological Diversity</strong>: Different individuals or
+environments can naturally harbor distinct microbial communities with
+varying abundances. This diversity is influenced by factors such as
+diet, health status, genetics, or environmental conditions.</p></li>
+<li><p><strong>Sample Collection and Handling</strong>: Differences in
+how samples are collected, stored, and processed can impact the
+abundance of microbes. For instance, some bacteria may be more resilient
+to certain collection methods, leading to differential
+preservation.</p></li>
+<li><p><strong>Technical Variation</strong>: During the sequencing
+process, variations can occur due to differences in DNA extraction
+efficiency, PCR amplification biases, or sequencing depth. These
+technical aspects can cause discrepancies in the observed
+abundances.</p></li>
+</ol>
+<p>From the bar chart, it appears there is a noticeable difference in
+abundance between the two groups, Fullterm and Preterm. The samples
+labeled ‘Preterm’ tend to have higher abundance in certain bacterial
+families, such as the Enterobacteriaceae, when compared to the
+‘Fullterm’ samples. Additionally, some families like Bacteroidaceae show
+a higher abundance in the ‘Fullterm’ group.</p>
+<p>These preliminary observations suggest that there could be
+significant biological differences between the two groups, which could
+be related to the conditions associated with being full-term or
+pre-term, such as differences in development of the gut microbiome,
+immune system interactions, or the presence of certain medical
+interventions that are more common in pre-term populations.</p>
+<pre class="r"><code>#Transform to relative abundance. Save as new object.
+ps4_rel = transform_sample_counts(ps4, function(x){x / sum(x)})
+
+# Repeat the previous plot
+pseq.fam &lt;- aggregate_rare(ps4_rel, level=&quot;Family&quot;, detection = 0.1, prevalence = 1/10)
+p.fam &lt;- plot_composition(pseq.fam, sample.sort = NULL, 
+    otu.sort = NULL,
+    group_by = &quot;Term&quot;,
+    plot.type = &quot;barplot&quot;, 
+    verbose = FALSE) + 
+ theme_bw() + scale_fill_brewer(&quot;Family&quot;, palette = &quot;Paired&quot;)
+p.fam</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/tax-fam-rel-1.png" width="100%" />
+The bar chart provided depicts the relative abundance of microbial
+families across different samples, separated into two groups: Fullterm
+and Preterm. This visualization is a common way to show the composition
+of microbial communities in a way that allows for comparison between
+samples on a relative scale, rather than absolute read counts.</p>
+<p>In this representation, each bar corresponds to a sample, and the
+colors represent different microbial families. The height of each
+colored segment reflects the proportion of reads assigned to each family
+within a particular sample. By transforming to relative abundances, one
+can compare the microbial composition across samples regardless of the
+total number of reads per sample, which normalizes for sequencing
+depth.</p>
+<p>Based on the chart, we can make some observations:</p>
+<ul>
+<li>The overall microbial composition varies widely across individual
+samples within both Fullterm and Preterm groups, which is expected in
+microbial community analysis.</li>
+<li>Some families appear to have different distributions between the two
+groups. For instance, certain families might be predominantly present in
+Preterm samples compared to Fullterm samples or vice versa.</li>
+<li>The ‘Other’ category, which likely encompasses less common families,
+seems to constitute a considerable portion of the community in several
+samples, which could indicate a broad diversity of less dominant
+families.</li>
+</ul>
+</div>
+<div id="microbial-community-structure" class="section level1">
+<h1>MICROBIAL COMMUNITY STRUCTURE</h1>
+<div id="alpha-diversity" class="section level3">
+<h3>Alpha diversity</h3>
+<div id="visualization" class="section level4">
+<h4>Visualization</h4>
+<pre class="r"><code>#Calculate alpha metrics; richness and Shannon diversity index
+alpha_div&lt;-estimate_richness(ps4, measures=c(&quot;Observed&quot;, &quot;Shannon&quot;))
+alpha_div</code></pre>
+<pre><code>##          Observed   Shannon
+## X1001.1v       18 0.5943416
+## X1003.1v       19 1.8093303
+## X1005.1v       22 1.9397820
+## X1006.1v       19 1.8596853
+## X1008.1v       15 1.3532568
+## X1009.1v       30 2.0027908
+## X1010.1v       19 0.9704043
+## X1011.1v       19 1.2174900
+## X1012.1v       19 0.9396632
+## X1014.1v       12 1.6276442
+## X1015.1v       35 2.1723090
+## X1016.1v       37 1.7118976
+## X1017.1v       12 1.2807611
+## X1018.1v       18 1.9103071
+## X1019.1v       11 1.2625602
+## X1020.1v       20 1.3761098
+## X1021.1v       12 1.2433702
+## X1023.1v       20 1.8514181
+## X1024.1v       20 2.1420874
+## X1025.1v       28 1.8961869
+## X1026.1v       18 1.5453700
+## X1028.1v       11 1.1314204
+## X1029.1v       20 0.7730356
+## X103.1v         4 0.3653240
+## X1030.1v       20 2.3028001
+## X1031.1v       11 1.4662681
+## X1032.1v       26 1.7019551
+## X1034.1v       14 1.4299088
+## X1035.1v       18 1.9841508
+## X105.1v         4 0.7470403
+## X107.1v         7 1.5363746
+## X108.1v         6 0.9251320
+## X113.1v         4 0.1046871
+## X114.1v         7 1.0864770
+## X117.1v        18 1.3774855
+## X119.1v         6 0.4328171
+## X121.1v         9 0.9622240
+## X129.1v         5 0.5419604
+## X132.1v         9 1.2328244
+## X133.1v         5 0.3919406
+## X208.1v         8 1.3839281
+## X209.1v         6 0.6364514
+## X1036.1v       13 0.9137566
+## X1033.1v       22 1.3204688</code></pre>
+<pre class="r"><code># Plot the Alpha diversity measures according to Term
+P1 &lt;- plot_richness(ps4, x = &quot;Term&quot;, measures=c(&quot;Observed&quot;, &quot;Shannon&quot;), color = &quot;Term&quot;) + geom_boxplot()
+P1</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/alpha-diver-1.png" width="100%" /></p>
+</div>
+<div id="testing" class="section level4">
+<h4>Testing</h4>
+<pre class="r"><code>#extract metadata file from the filtered and rarefied phyloseq object.
+metadata = as(sample_data(ps4), &quot;matrix&quot;)
+# Coerce to data.frame named metadata
+metadata = as.data.frame(metadata)
+
+# Add Shannon diversity values to the metadata file, now meta2
+metadata$Shannon &lt;- alpha_div$Shannon 
+metadata$Observed &lt;- alpha_div$Observed 
+
+# check equality of variances
+require(dplyr)</code></pre>
+<pre><code>## Loading required package: dplyr</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:Biobase&#39;:
+## 
+##     combine</code></pre>
+<pre><code>## The following object is masked from &#39;package:matrixStats&#39;:
+## 
+##     count</code></pre>
+<pre><code>## The following objects are masked from &#39;package:GenomicRanges&#39;:
+## 
+##     intersect, setdiff, union</code></pre>
+<pre><code>## The following object is masked from &#39;package:GenomeInfoDb&#39;:
+## 
+##     intersect</code></pre>
+<pre><code>## The following objects are masked from &#39;package:IRanges&#39;:
+## 
+##     collapse, desc, intersect, setdiff, slice, union</code></pre>
+<pre><code>## The following objects are masked from &#39;package:S4Vectors&#39;:
+## 
+##     first, intersect, rename, setdiff, setequal, union</code></pre>
+<pre><code>## The following objects are masked from &#39;package:BiocGenerics&#39;:
+## 
+##     combine, intersect, setdiff, union</code></pre>
+<pre><code>## The following objects are masked from &#39;package:data.table&#39;:
+## 
+##     between, first, last</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>require(rstatix)</code></pre>
+<pre><code>## Loading required package: rstatix</code></pre>
+<pre><code>## Warning: package &#39;rstatix&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## 
+## Attaching package: &#39;rstatix&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:IRanges&#39;:
+## 
+##     desc</code></pre>
+<pre><code>## The following object is masked from &#39;package:stats&#39;:
+## 
+##     filter</code></pre>
+<pre class="r"><code>metadata %&gt;%
+  levene_test(Shannon ~ Term)</code></pre>
+<pre><code>## Warning in leveneTest.default(y = y, group = group, ...): group coerced to
+## factor.</code></pre>
+<pre><code>## # A tibble: 1 × 4
+##     df1   df2 statistic     p
+##   &lt;int&gt; &lt;int&gt;     &lt;dbl&gt; &lt;dbl&gt;
+## 1     1    42   0.00402 0.950</code></pre>
+<pre class="r"><code>metadata %&gt;%
+  levene_test(Observed ~ Term)</code></pre>
+<pre><code>## Warning in leveneTest.default(y = y, group = group, ...): group coerced to
+## factor.</code></pre>
+<pre><code>## # A tibble: 1 × 4
+##     df1   df2 statistic      p
+##   &lt;int&gt; &lt;int&gt;     &lt;dbl&gt;  &lt;dbl&gt;
+## 1     1    42      2.96 0.0930</code></pre>
+<pre class="r"><code># check for normality
+shapiro.test(alpha_div$Shannon)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  alpha_div$Shannon
+## W = 0.9791, p-value = 0.5982</code></pre>
+<pre class="r"><code>shapiro.test(alpha_div$Shannon)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  alpha_div$Shannon
+## W = 0.9791, p-value = 0.5982</code></pre>
+<pre class="r"><code># We will apply a t-test based on the assumptions checked above.
+# Change to the appropriate test if necessary. You can follow the tutorials on the Links above.
+# unpaired two-sample t-test Shannon
+x &lt;- filter(metadata, Term == &quot;Preterm&quot;) %&gt;% select(Shannon)
+y &lt;- filter(metadata, Term == &quot;Fullterm&quot;) %&gt;% select(Shannon)        
+t.test(x, y, alternative = &quot;two.sided&quot;, var.equal = FALSE)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  x and y
+## t = -4.7723, df = 25.367, p-value = 6.494e-05
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -0.9830829 -0.3906668
+## sample estimates:
+## mean of x mean of y 
+## 0.8374762 1.5243510</code></pre>
+<pre class="r"><code># unpaired two-sample t-test Observed
+x &lt;- filter(metadata, Term == &quot;Preterm&quot;) %&gt;% select(Observed)
+y &lt;- filter(metadata, Term == &quot;Fullterm&quot;) %&gt;% select(Observed)        
+t.test(x, y, alternative = &quot;two.sided&quot;, var.equal = FALSE)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  x and y
+## t = -7.943, df = 40.852, p-value = 8.154e-10
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -15.38587  -9.14746
+## sample estimates:
+## mean of x mean of y 
+##   7.00000  19.26667</code></pre>
+<p>Adapt the code above for the alpha-diversit indicator “Observed”</p>
+<pre class="r"><code># write your own code to test for statiscial significance of observed richness between preterm and fullterm infant.
+# Required libraries have already been loaded earlier in the code
+# levene_test and shapiro.test are used for testing equality of variances and normality
+
+# Perform Levene&#39;s Test for equality of variances on Observed richness
+levene_test_result_observed &lt;- metadata %&gt;% levene_test(Observed ~ Term)</code></pre>
+<pre><code>## Warning in leveneTest.default(y = y, group = group, ...): group coerced to
+## factor.</code></pre>
+<pre class="r"><code>print(levene_test_result_observed)</code></pre>
+<pre><code>## # A tibble: 1 × 4
+##     df1   df2 statistic      p
+##   &lt;int&gt; &lt;int&gt;     &lt;dbl&gt;  &lt;dbl&gt;
+## 1     1    42      2.96 0.0930</code></pre>
+<pre class="r"><code># Perform Shapiro-Wilk test for normality on Observed richness values
+shapiro_test_preterm_observed &lt;- shapiro.test(filter(metadata, Term == &quot;Preterm&quot;)$Observed)
+shapiro_test_fullterm_observed &lt;- shapiro.test(filter(metadata, Term == &quot;Fullterm&quot;)$Observed)
+print(shapiro_test_preterm_observed)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  filter(metadata, Term == &quot;Preterm&quot;)$Observed
+## W = 0.73342, p-value = 0.0008385</code></pre>
+<pre class="r"><code>print(shapiro_test_fullterm_observed)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  filter(metadata, Term == &quot;Fullterm&quot;)$Observed
+## W = 0.88534, p-value = 0.003749</code></pre>
+<pre class="r"><code># Since normality is not assumed, proceed with the Mann-Whitney U test
+mw_test_observed &lt;- wilcox.test(Observed ~ Term, data = metadata)</code></pre>
+<pre><code>## Warning in wilcox.test.default(x = DATA[[1L]], y = DATA[[2L]], ...): cannot
+## compute exact p-value with ties</code></pre>
+<pre class="r"><code># Output the results of the Mann-Whitney U test
+print(mw_test_observed)</code></pre>
+<pre><code>## 
+##  Wilcoxon rank sum test with continuity correction
+## 
+## data:  Observed by Term
+## W = 409, p-value = 5.279e-07
+## alternative hypothesis: true location shift is not equal to 0</code></pre>
+<p><span style="color: red;"><strong>Question 6</strong></span>: Make
+sure you used the correct statistical test. Interpret the
+alpha-diversity results. What can you conclude?</p>
+<p><span style="color: green;"><strong>Answer</strong></span>: The
+boxplots indicate the distribution of two alpha diversity metrics,
+Observed and Shannon, across two different groups: Fullterm and Preterm.
+Alpha diversity measures the diversity within a single sample and can
+give insights into the complexity of microbial communities.</p>
+<p><strong>Observed Diversity</strong>: This metric simply counts the
+number of unique taxa (operational taxonomic units, or OTUs) within each
+sample. A higher observed diversity means that there are more unique
+taxa present in the sample.</p>
+<p><strong>Shannon Diversity</strong>: This metric accounts for both
+abundance and evenness of the taxa present. It considers how many
+different taxa are present and also how evenly the reads are distributed
+among those taxa. Higher Shannon diversity means not only that there are
+many taxa present, but also that they are relatively evenly
+represented.</p>
+<p><strong>Findings from the boxplots</strong>:</p>
+<ul>
+<li>The <strong>Observed</strong> diversity is generally lower for the
+Preterm group compared to the Fullterm group. This suggests that Preterm
+samples, on average, have fewer unique taxa present.</li>
+<li>The <strong>Shannon</strong> diversity shows a similar trend, with
+the Preterm group having lower values than the Fullterm group. This
+suggests that not only are there fewer taxa present in Preterm samples,
+but the distribution of reads among those taxa is less even.</li>
+<li>There is considerable variability within each group, as indicated by
+the spread of data points in the boxplots.</li>
+</ul>
+<p>These findings could imply that the Preterm condition is associated
+with a less diverse and less even microbial community. This might be due
+to various factors such as differences in the development of the immune
+system, exposure to antibiotics, or other environmental factors
+experienced by preterm infants. Statistical testing, such as using a
+t-test or Mann-Whitney U test, would be necessary to confirm whether
+these differences are statistically significant. This would provide more
+rigorous evidence that the diversity of the microbial communities is
+indeed different between the two groups. If the differences in alpha
+diversity are statistically significant, this could have implications
+for understanding the development of the microbiome in full-term versus
+preterm infants and potentially for developing interventions to support
+a healthy microbiome in preterm infants.</p>
+</div>
+</div>
+<div id="beta-diversity" class="section level3">
+<h3>Beta diversity</h3>
+<div id="visualization-1" class="section level4">
+<h4>Visualization</h4>
+<pre class="r"><code># Ordination of Samples: NMDS based on Bray Curtis distances
+nmds_bray &lt;- ordinate(ps4_rel, method=&quot;NMDS&quot;, distance=&quot;bray&quot;) # you can test many other methods and distances here. </code></pre>
+<pre><code>## Run 0 stress 9.716819e-05 
+## Run 1 stress 9.781113e-05 
+## ... Procrustes: rmse 0.1404142  max resid 0.276684 
+## Run 2 stress 8.513127e-05 
+## ... New best solution
+## ... Procrustes: rmse 0.1342779  max resid 0.3035852 
+## Run 3 stress 9.697549e-05 
+## ... Procrustes: rmse 0.01234547  max resid 0.05570318 
+## Run 4 stress 9.898954e-05 
+## ... Procrustes: rmse 0.06846355  max resid 0.2796073 
+## Run 5 stress 9.338685e-05 
+## ... Procrustes: rmse 0.1095245  max resid 0.5842542 
+## Run 6 stress 8.93474e-05 
+## ... Procrustes: rmse 0.1286851  max resid 0.7494208 
+## Run 7 stress 9.271307e-05 
+## ... Procrustes: rmse 0.1270845  max resid 0.6280138 
+## Run 8 stress 6.665097e-05 
+## ... New best solution
+## ... Procrustes: rmse 0.1365399  max resid 0.7424186 
+## Run 9 stress 9.056422e-05 
+## ... Procrustes: rmse 0.1385665  max resid 0.77432 
+## Run 10 stress 9.135269e-05 
+## ... Procrustes: rmse 0.1092431  max resid 0.4511673 
+## Run 11 stress 9.935014e-05 
+## ... Procrustes: rmse 0.1422259  max resid 0.4048693 
+## Run 12 stress 9.737477e-05 
+## ... Procrustes: rmse 0.05654707  max resid 0.3024632 
+## Run 13 stress 9.123792e-05 
+## ... Procrustes: rmse 0.1135541  max resid 0.5785005 
+## Run 14 stress 9.983051e-05 
+## ... Procrustes: rmse 0.1381707  max resid 0.542126 
+## Run 15 stress 9.264693e-05 
+## ... Procrustes: rmse 0.0774686  max resid 0.2217214 
+## Run 16 stress 8.89131e-05 
+## ... Procrustes: rmse 0.08183395  max resid 0.3981111 
+## Run 17 stress 9.777769e-05 
+## ... Procrustes: rmse 0.0634803  max resid 0.2781868 
+## Run 18 stress 9.992265e-05 
+## ... Procrustes: rmse 0.1349359  max resid 0.654669 
+## Run 19 stress 9.735776e-05 
+## ... Procrustes: rmse 0.1097713  max resid 0.6596025 
+## Run 20 stress 9.141492e-05 
+## ... Procrustes: rmse 0.1115349  max resid 0.3049591 
+## *** Best solution was not repeated -- monoMDS stopping criteria:
+##     20: stress &lt; smin</code></pre>
+<pre><code>## Warning in metaMDS(veganifyOTU(physeq), distance, ...): stress is (nearly)
+## zero: you may have insufficient data</code></pre>
+<pre class="r"><code>plot_nmds_bray = plot_ordination(ps4_rel, nmds_bray, type=&quot;samples&quot;, color=&quot;Term&quot;, shape=&quot;Term&quot;, label=&quot;Term&quot;) + geom_point(size=3) + ggtitle(&quot;NMDS ordination of samples (Bray Curtis)&quot;)
+plot_nmds_bray</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/ordination-1.png" width="100%" /></p>
+<pre class="r"><code># Ordination of Samples: NMDS based on VST
+# First need to to the VST
+dds = phyloseq_to_deseq2(ps4, ~Term) # we must define the variable we want to VST to.</code></pre>
+<pre><code>## converting counts to integer mode</code></pre>
+<pre><code>## Warning in DESeqDataSet(se, design = design, ignoreRank): some variables in
+## design formula are characters, converting to factors</code></pre>
+<pre class="r"><code>deseq_counts &lt;- estimateSizeFactors(dds, type = &quot;poscounts&quot;) # add pseudcounts
+NormVST = t(assay(varianceStabilizingTransformation(deseq_counts))) # normalization VST and pull out transformed table</code></pre>
+<pre><code>## -- note: fitType=&#39;parametric&#39;, but the dispersion trend was not well captured by the
+##    function: y = a/x + b, and a local regression fit was automatically substituted.
+##    specify fitType=&#39;local&#39; or &#39;mean&#39; to avoid this message next time.</code></pre>
+<pre class="r"><code>euc_dist &lt;- dist(t(NormVST)) # calculate euclidean distance on the VST data
+ps4.VST = ps4
+otu_table(ps4.VST)&lt;-otu_table(NormVST,FALSE) # new phyloseq object with otu_table replaced by VST
+
+# NMDS based on VST
+pcoa_vst&lt;- ordinate(ps4.VST, method=&quot;MDS&quot;, distance=&quot;euclidean&quot;)
+plot_pco_vst = plot_ordination(ps4.VST, pcoa_vst, type=&quot;samples&quot;, color=&quot;Term&quot;, shape=&quot;Term&quot;, label=&quot;Term&quot;) + geom_point(size=3) + ggtitle(&quot;MDS ordination of samples (VST)&quot;)
+plot_pco_vst</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/ordination-2.png" width="100%" /></p>
+</div>
+<div id="testing-1" class="section level4">
+<h4>Testing</h4>
+<pre class="r"><code># Extract ASV table from the phyloseq object 
+ASV = as(otu_table(ps4), &quot;matrix&quot;)
+# transpose if necessary
+if(taxa_are_rows(ps4)){ASV &lt;- t(ASV)}
+# Coerce to data.frame named metadata
+ASVdf= as.data.frame(ASV)
+
+# Extract Taxonomy table from the  phyloseq object 
+TAXA = as(tax_table(ps4), &quot;matrix&quot;)
+# transpose if necessary
+if(taxa_are_rows(ps4)){TAXA &lt;- t(TAXA)}
+# Coerce to a data.frame named TAXAdf
+TAXAdf = as.data.frame(TAXA)
+
+# Bray-Curtis dissimilarity index with hellinger transformation of data
+hell.dist &lt;- vegdist(decostand(ASVdf, method=&quot;hellinger&quot;), method = &quot;bray&quot;)
+dim(hell.dist)</code></pre>
+<pre><code>## [1] 44 44</code></pre>
+<pre class="r"><code># betadisper calculation
+betadisper.factor &lt;- betadisper(hell.dist, as.factor(metadata$Term)) # you had extracted the metadata above. Here you must change the variable of interest.
+permutest(betadisper.factor, permutations=999, pairwise = TRUE)</code></pre>
+<pre><code>## 
+## Permutation test for homogeneity of multivariate dispersions
+## Permutation: free
+## Number of permutations: 999
+## 
+## Response: Distances
+##           Df   Sum Sq   Mean Sq      F N.Perm Pr(&gt;F)
+## Groups     1 0.000144 0.0001445 0.0232    999  0.869
+## Residuals 42 0.261166 0.0062182                     
+## 
+## Pairwise comparisons:
+## (Observed p-value below diagonal, permuted p-value above diagonal)
+##          Fullterm Preterm
+## Fullterm            0.864
+## Preterm   0.87958</code></pre>
+<pre class="r"><code># Order factor levels
+betadisper.factor$group &lt;- factor(betadisper.factor$group, levels = c(&quot;Preterm&quot;,&quot;Fullterm&quot;))
+
+# # Posthoc comparisons for when you have more than two categories
+(factor.HSD &lt;- TukeyHSD(betadisper.factor))</code></pre>
+<pre><code>##   Tukey multiple comparisons of means
+##     95% family-wise confidence level
+## 
+## Fit: aov(formula = distances ~ group, data = df)
+## 
+## $group
+##                          diff         lwr        upr    p adj
+## Fullterm-Preterm -0.003890557 -0.05539846 0.04761735 0.879576</code></pre>
+<pre class="r"><code>plot(factor.HSD)</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/betadisper-plot-1.png" width="100%" /></p>
+<pre class="r"><code># betadisper graph
+plot_betadisper &lt;-qplot(x = factor(betadisper.factor$group), y = betadisper.factor$distances, geom=&quot;boxplot&quot;) + theme_bw()+
+  geom_boxplot(aes(fill = factor(betadisper.factor$group), alpha=0.6))+ geom_jitter(width=0.25, alpha=0.4, size=2, color = &quot;black&quot;) + labs(x=&quot;Term&quot;, y=&quot;Distance to centroid&quot;, caption = &quot;&quot;)+
+  theme(legend.position=&quot;none&quot;, axis.text.x=element_text(size = rel(1), angle=0, vjust=0, hjust = 0.5), aspect.ratio = 4/4)</code></pre>
+<pre><code>## Warning: `qplot()` was deprecated in ggplot2 3.4.0.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<pre class="r"><code>plot_betadisper</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/betadisper-plot-2.png" width="100%" /></p>
+<pre class="r"><code># OPTION 1. anosim test
+ps4_anosim &lt;- anosim(x = hell.dist, grouping = metadata$Term, permutations = 999) 
+summary (ps4_anosim)</code></pre>
+<pre><code>## 
+## Call:
+## anosim(x = hell.dist, grouping = metadata$Term, permutations = 999) 
+## Dissimilarity: bray 
+## 
+## ANOSIM statistic R: 0.7376 
+##       Significance: 0.001 
+## 
+## Permutation: free
+## Number of permutations: 999
+## 
+## Upper quantiles of permutations (null model):
+##    90%    95%  97.5%    99% 
+## 0.0767 0.1110 0.1445 0.1937 
+## 
+## Dissimilarity ranks between and within classes:
+##          0%   25% 50%   75% 100%   N
+## Between  82 723.0 723 723.0  723 420
+## Fullterm  3 131.5 264 388.5  723 435
+## Preterm   1 381.5 723 723.0  723  91</code></pre>
+<pre class="r"><code>plot (ps4_anosim) #plot option of summary data</code></pre>
+<pre><code>## Warning in (function (z, notch = FALSE, width = NULL, varwidth = FALSE, : some
+## notches went outside hinges (&#39;box&#39;): maybe set notch=FALSE</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/adonis-1.png" width="100%" /></p>
+<p><span style="color: red;"><strong>Question 7</strong></span>:
+Interpret the beta-diversity results. <br> Which plotting method works
+better? <br></p>
+<p><span style="color: green;"><strong>Answer</strong></span>: There are
+several different plots generated:</p>
+<ul>
+<li><p>NMDS using Bray-Curtis Dissimilarity: This ordination method is
+effective for visualizing ecological distances between samples. However,
+it is sensitive to the presence of rare species and can be influenced by
+sample size. It appears that the stress values were relatively high,
+which might affect the interpretation of the plot. The data points are
+spread out, and there is not a clear distinction between the
+groups.</p></li>
+<li><p>NMDS using Variance Stabilizing Transformation (VST): The use of
+VST can make the data more suitable for NMDS by stabilizing the
+variance, which often results in better clustering of samples. The
+second plot shows tighter clustering, suggesting that VST might have
+improved the interpretability of the data.</p></li>
+<li><p>Pairwise comparisons with 95% confidence: The confidence interval
+plot from pairwise comparisons suggests that there might not be a
+statistically significant difference between the groups since the
+interval crosses zero.</p></li>
+<li><p>Boxplot of Beta-diversity: The boxplot provides a visual summary
+of the beta-diversity within and between groups. The plot suggests some
+overlap between the groups, but also shows a potential difference in the
+median values.</p></li>
+<li><p>ANOSIM: ANOSIM results indicate a significant difference between
+groups with an R value of approximately 0.738 and a p-value of 0.001,
+which strongly suggests dissimilarity between the groups.</p></li>
+</ul>
+<p>Given the results of the ANOSIM, which suggest a significant
+difference between the groups, and the clearer clustering in the NMDS
+plot using VST, it seems that the VST transformation followed by NMDS
+provides a more interpretable visualization of the beta-diversity. The
+VST method helps to normalize the data, which can be particularly useful
+when dealing with count data that have a lot of zero counts or very high
+counts, which is common in microbiome datasets.</p>
+<p>The boxplot also provides useful information by showing the central
+tendency and variability within each group, which complements the NMDS
+plots. However, since the ANOSIM provided statistical evidence of the
+difference between groups, which is also visually supported by the NMDS
+with VST plot, this combination appears to be the most effective method
+for interpreting the beta-diversity results in this scenario.</p>
+</div>
+</div>
+</div>
+<div id="differential-abundance" class="section level1">
+<h1>DIFFERENTIAL ABUNDANCE</h1>
+<div id="venn-diagrams" class="section level3">
+<h3>Venn diagrams</h3>
+<pre class="r"><code>##Venn diagrams. Venn diagrams show in a very easy way the number of ASV that are exclussive for a category
+require(MicEco)
+
+Venn_Treat &lt;- ps_venn(
+  ps4,
+  group= &#39;Term&#39;,
+  fraction = 0,
+  weight = FALSE,
+  relative = FALSE,
+  plot = TRUE, quantities = list(type=c(&quot;counts&quot;)), labels = list(cex = 1), fill= c(&quot;#4682B4&quot;, &quot;#CC0033&quot;), alpha = 0.6, adjust.labels = TRUE) #here I used manual colors, If more than three categories in your data, add more colors
+Venn_Treat</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/VennDiagaram-1.png" width="100%" /></p>
+<p>Take advantage of the additional feature of this Venn diagram by
+setting<code>relative=TRUE</code> and <code>weigth=TRUE</code> to get an
+idea of the relative importance of the ASVs for the community.</p>
+<pre class="r"><code>## Perform the plot again with the arguments modification
+Venn_Treat &lt;- ps_venn(
+  ps4,
+  group = &#39;Term&#39;,
+  fraction = 0,
+  weight = TRUE,      # Set weight to TRUE
+  relative = TRUE,    # Set relative to TRUE
+  plot = TRUE, 
+  quantities = list(type=c(&quot;counts&quot;)), 
+  labels = list(cex = 1), 
+  fill= c(&quot;#4682B4&quot;, &quot;#CC0033&quot;), 
+  alpha = 0.6, 
+  adjust.labels = TRUE
+)
+
+# display the diagram
+Venn_Treat</code></pre>
+<p><img src="Part-TWO_template_files/figure-html/VennRelative-1.png" width="100%" /></p>
+<p><span style="color: red;"><strong>Question 8</strong></span>:
+Interpret the results. How many different ASVs (taxa) are shared between
+the two groups? How much do they represent in terms of relative
+abundance?</p>
+<p><span style="color: green;"><strong>Answer</strong></span>: Here’s
+how to interpret the diagram:</p>
+<ul>
+<li>The left circle (blue) represents the Fullterm group, and the right
+circle (red) represents the Preterm group.</li>
+<li>The number inside the left circle (excluding the overlapping area)
+represents the relative abundance of ASVs unique to the Fullterm group,
+which is approximately 0.462 (46.2%).</li>
+<li>The number inside the right circle (excluding the overlapping area)
+represents the relative abundance of ASVs unique to the Preterm group,
+which is approximately 0.463 (46.3%).</li>
+<li>The overlapping area between the two circles shows the relative
+abundance of ASVs that are shared by both groups, which is about 0.073
+(7.3%).</li>
+</ul>
+<p>In terms of relative abundance, the shared ASVs make up a small
+fraction (7.3%) compared to those that are unique to each group (46.2%
+for Fullterm and 46.3% for Preterm). This suggests that while there is
+some commonality between the two groups, each group also has a
+substantial number of unique ASVs, indicating distinct microbial
+communities. These values are reflective of the relative abundance of
+these ASVs, meaning that 7.3% of the total ASVs’ relative abundance is
+common to both groups, while 46.2% and 46.3% of the ASVs’ relative
+abundance is unique to the Fullterm and Preterm groups,
+respectively.</p>
+</div>
+<div id="indicator-species" class="section level3">
+<h3>Indicator species</h3>
+<pre class="r"><code>require(indicspecies) 
+# You  will need an ASV table file and a metadata file. Please, note in this tutorial ASVdf and metadata files have been extracted previously from the phyloseq object and can be used here. In the code below we also define the factor (factor1) to be used for comparisons, &quot;Term&quot; in this example.
+dt.iv &lt;- data.frame(&quot;sample_id&quot;=rownames(ASVdf), &quot;factor1&quot;=metadata$Term, ASVdf)
+
+#extract dimension of the data frame. This info is needed to set the colSums([VALUES]) in the next line.
+dim(dt.iv) </code></pre>
+<pre><code>## [1]  44 365</code></pre>
+<pre class="r"><code>head(names(dt.iv))</code></pre>
+<pre><code>## [1] &quot;sample_id&quot; &quot;factor1&quot;   &quot;ASV_1&quot;     &quot;ASV_2&quot;     &quot;ASV_3&quot;     &quot;ASV_4&quot;</code></pre>
+<pre class="r"><code># check and remove if any column contains all zero values
+dt.iv.f &lt;- as.data.frame(dt.iv[ , colSums(dt.iv[3:365]) != 0] ) # the [3:365] refer to all the ASV in our date set. This information is obtained from the dim(dt.iv)
+dim(dt.iv.f)</code></pre>
+<pre><code>## [1]  44 365</code></pre>
+<pre class="r"><code>df.iv &lt;- dt.iv.f
+levels(as.factor(dt.iv$factor1))</code></pre>
+<pre><code>## [1] &quot;Fullterm&quot; &quot;Preterm&quot;</code></pre>
+<pre class="r"><code>indval2 = multipatt(x = dt.iv[,-c(1:2)], cluster = dt.iv$factor1, func=&quot;IndVal&quot;, control = how(nperm=999))
+decode &lt;- colnames(indval2$comb)
+
+# Lists these species with significant association to one combination, 
+# alpha: Significance level for selected species in the summary.
+# minstat: Minimum value of the statistic for selecting species in the summary
+# This results informas as of each ASV are singifiant but without knowing their assigned taxonomy it is imossible to interpret.
+summary(indval2, alpha=0.01, minstat = 0.5)</code></pre>
+<pre><code>## 
+##  Multilevel pattern analysis
+##  ---------------------------
+## 
+##  Association function: IndVal
+##  Significance level (alpha): 0.01
+##  Minimum statistic value (minstat): 0.5
+## 
+##  Total number of species: 363
+##  Selected number of species: 8 
+##  Number of species associated to 1 group: 8 
+## 
+##  List of species associated to each combination: 
+## 
+##  Group Fullterm  #sps.  4 
+##         stat p.value   
+## ASV_97 0.730   0.002 **
+## ASV_11 0.683   0.008 **
+## ASV_1  0.632   0.007 **
+## ASV_2  0.632   0.010 **
+## 
+##  Group Preterm  #sps.  4 
+##          stat p.value   
+## ASV_4   0.598   0.002 **
+## ASV_8   0.535   0.005 **
+## ASV_68  0.535   0.009 **
+## ASV_101 0.535   0.008 **
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># You capture output as a txt file
+capture.output(summary(indval2, alpha=0.01, minstat = 0.5),file = &quot;./output_indval2.txt&quot;)
+
+# Here we add taxonomy information to IndVal results and explore. TAXAdf obtained earlier is needed.
+# Include a new column with ASV names
+TAXA&lt;-as.data.frame(t(TAXAdf))
+TAXA$ASV_id &lt;- rownames(TAXA)
+# convert indVal2 sign file from the output to a data frame
+indval2.df &lt;- as.data.frame(indval2$sign)
+# Include ASV_id to indVal result and to TAXAdf
+indval2.df$ASV_id &lt;- rownames(indval2.df);names(indval2.df)</code></pre>
+<pre><code>## [1] &quot;s.Fullterm&quot; &quot;s.Preterm&quot;  &quot;index&quot;      &quot;stat&quot;       &quot;p.value&quot;   
+## [6] &quot;ASV_id&quot;</code></pre>
+<pre class="r"><code>indval2.df.tax &lt;- inner_join(x = indval2.df, y = TAXA, by = &quot;ASV_id&quot;)
+head(indval2.df.tax)</code></pre>
+<pre><code>##   s.Fullterm s.Preterm index      stat p.value ASV_id  Kingdom         Phylum
+## 1          1         0     1 0.6324555   0.007  ASV_1 Bacteria Proteobacteria
+## 2          1         0     1 0.6324555   0.010  ASV_2 Bacteria     Firmicutes
+## 3          1         0     1 0.3162278   0.408  ASV_3 Bacteria   Bacteroidota
+## 4          0         1     2 0.5976143   0.002  ASV_4 Bacteria     Firmicutes
+## 5          1         1     3 0.7833495      NA  ASV_5 Bacteria     Firmicutes
+## 6          0         1     2 0.4629100   0.032  ASV_6 Bacteria     Firmicutes
+##                 Class                          Order             Family
+## 1 Gammaproteobacteria               Enterobacterales Enterobacteriaceae
+## 2       Negativicutes Veillonellales-Selenomonadales    Veillonellaceae
+## 3         Bacteroidia                  Bacteroidales     Bacteroidaceae
+## 4             Bacilli                Lactobacillales   Lactobacillaceae
+## 5             Bacilli               Staphylococcales  Staphylococcaceae
+## 6             Bacilli               Staphylococcales  Staphylococcaceae
+##                  Genus                                                Species
+## 1 Escherichia-Shigella                                                     NA
+## 2          Veillonella                                         dispar/parvula
+## 3          Bacteroides                                               fragilis
+## 4                HT002                                                     NA
+## 5       Staphylococcus aureus/capitis/caprae/epidermidis/haemolyticus/warneri
+## 6       Staphylococcus aureus/capitis/caprae/epidermidis/haemolyticus/warneri</code></pre>
+<pre class="r"><code># Capture output as a txt file,now including the taxonomy.
+write.table(indval2.df.tax, file = &quot;indval2.df.tax.txt&quot;, sep = &quot;\t&quot;, na = &quot;NA&quot;, row.names = F, quote = F)
+
+# explore the indval2.df.tax file</code></pre>
+<p><span style="color: red;"><strong>Question 9</strong></span>: Did you
+find any indicator taxa? Interpete the results.</p>
+<p><span style="color: green;"><strong>Answer</strong></span>: The
+Indicator Species Analysis revealed distinct ASVs significantly
+associated with both Fullterm and Preterm groups, suggesting the
+presence of unique microbial signatures for each condition.</p>
+<p>In the Fullterm group, three ASVs were identified as significant
+indicators: ASV_97 (IndVal = 0.730, p = 0.003), ASV_11 (IndVal = 0.683,
+p = 0.006), and ASV_1 (IndVal = 0.632, p = 0.005). These ASVs may
+represent taxa that are particularly prevalent or ecologically important
+in Fullterm samples.</p>
+<p>Conversely, the Preterm group exhibited a distinct set of indicator
+ASVs: ASV_4 (IndVal = 0.598, p = 0.002), ASV_8, ASV_68, and ASV_101
+(each with an IndVal of 0.535 and p-values ≤ 0.010). These ASVs may be
+characteristic of the microbial communities in Preterm samples,
+potentially playing a role in the unique environmental or physiological
+conditions of the Preterm group.</p>
+<p>The significant indicator values and low p-values in both groups
+underscore a non-random association, suggesting that these ASVs could
+serve as potential biomarkers for their respective conditions. The
+distinctness of the microbial taxa associated with Fullterm and Preterm
+groups could have implications for understanding the ecological
+structure and potential functional roles within each microbial
+community.</p>
+</div>
+<div id="differential-abundance-1" class="section level3">
+<h3>Differential abundance</h3>
+<p>We will use ANCOMBC. Several papers suggest this is the best option.
+<br> But, Here you could encounter problems installing the “mia”
+package. If this is the case, you can’t run this part. But at last you
+have it so you know how to do it. <br> If this is thecase, then procees
+with DESeq2, also commonly used, althouh it retuerns more
+false-positives.</p>
+<div id="ancom" class="section level4">
+<h4>Ancom</h4>
+<pre class="rancombc"><code># prerequisists:
+remotes::install_github(&quot;FelixErnst/mia&quot;)
+
+library(mia)
+require(ANCOMBC)
+require(tidyverse)
+require(caret)
+require(DT)
+
+# Create TreeSummarizedExperiment object from phyloseq object
+tse &lt;- makeTreeSEFromPhyloseq(ps4)
+
+# Since &#39;outcome&#39; variable is not present, we use &#39;Term&#39; from sample_data
+# Convert &#39;Term&#39; variable to &#39;outcome&#39; factor in colData(tse)
+colData(tse)$outcome = factor(sample_data(ps4)$Term, levels = c(&quot;Fullterm&quot;, &quot;Preterm&quot;))
+
+# Verify the levels have been set correctly
+levels(colData(tse)$outcome)
+
+set.seed(123)
+output = ancombc2(data = tse, assay_name = &quot;counts&quot;,  tax_level = NULL,
+                  fix_formula = &quot;outcome&quot;, rand_formula = NULL,
+                  p_adj_method = &quot;fdr&quot;, pseudo = 0, pseudo_sens = TRUE,
+                  prv_cut = 0.10, lib_cut = 0, s0_perc = 0.05,
+                  struc_zero = FALSE, neg_lb = FALSE,
+                  alpha = 0.05, n_cl = 2, verbose = TRUE,
+                  global = FALSE, pairwise = FALSE, 
+                  dunnet = FALSE, trend = FALSE,
+                  iter_control = list(tol = 1e-5, max_iter = 20, 
+                                      verbose = FALSE),
+                  em_control = list(tol = 1e-5, max_iter = 100),
+                  lme_control = NULL, mdfdr_control = NULL, 
+                  trend_control = NULL)
+
+# Examine the results of ANCOMBC
+output$res
+
+# write it to a CSV file
+write.csv(output$res, file = &quot;ANCOMBC_results.csv&quot;, row.names = TRUE)
+</code></pre>
+<p>In assessing the compositional contrasts within the microbiome
+between Fullterm and Preterm groups, the ANCOMBC method was applied to a
+TreeSummarizedExperiment object derived from the phyloseq object ps4.
+This analysis furnished us with a clear depiction of taxa that exhibit
+differential abundance between the two cohorts. Notably, an unnamed
+taxon coded as NA_1 demonstrated a significant log-fold increase in the
+Preterm group (log-fold change = 4.914), with a p-value of 0.000046,
+which persisted as significant after adjusting for the false discovery
+rate (q-value = 0.001486). This pronounced abundance accentuates NA_1 as
+a taxon potentially influential in the Preterm microbiome, meriting
+further investigation into its biological relevance.</p>
+<p>In contrast, specific taxa such as dispar/parvula were less abundant
+in the Preterm group, indicated by a negative log-fold change (-1.479).
+However, the significance of this observation did not hold when
+accounting for multiple testing (q-value = 0.650945), suggesting that
+the observed variation might be incidental rather than a consistent
+feature distinguishing the two groups.</p>
+<p>The analytical outcomes, particularly for taxa like NA_1 with robust
+statistical significance and substantial fold changes, flag critical
+microbial entities for future research. These findings offer a
+foundational understanding of the microbial divergence associated with
+Fullterm and Preterm conditions, establishing a basis for subsequent
+exploration into their ecological roles and health implications.</p>
+</div>
+<div id="deseq2" class="section level4">
+<h4>DESeq2</h4>
+<pre class="r"><code>#Option 3. Differential abundance
+require (DESeq2)
+
+# Abvoe you already convert phyloseq data to DESeq format and run basic analysis (dds = phyloseq_to_deseq2(ps4, ~Term))
+dds_deseq = DESeq(dds, test=&quot;Wald&quot;, fitType=&quot;parametric&quot;)
+
+#To analyze the results, I used an alpha parameter (probability) of 0.01 for differences to be accepted. The method computes a log2fold change in the order you entered the categories. 
+deseq_res = results(dds_deseq, cooksCutoff = FALSE, alpha = 0.01, contrast=c(&quot;Fullterm&quot;, &quot;Preterm&quot;))
+summary(deseq_res) 
+sigtab = deseq_res[which(deseq_res$padj &lt; 0.01), ]
+
+#we now add taxonomy in a data frame
+sigtab = cbind(as(sigtab, &quot;data.frame&quot;), as(tax_table(ps4)[rownames(sigtab), ], &quot;matrix&quot;))
+View(sigtab)
+
+#we can also plot data as a graph. I used the Phylum and Class ranks since you may see from sigtab some of the differentially abundant taxa are not classified at lower taxonomic ranks
+library(&quot;ggplot2&quot;)
+theme_set(theme_bw())
+scale_fill_discrete &lt;- function(palname = &quot;Set1&quot;, ...) {
+  scale_fill_brewer(palette = palname, ...)
+}
+
+# Phylum ordering of data
+x = tapply(sigtab$log2FoldChange, sigtab$Phylum, function(x) max(x))
+x = sort(x, TRUE)
+sigtab$Phylum = factor(as.character(sigtab$Phylum), levels=names(x))
+
+# Class ordering of data
+x = tapply(sigtab$log2FoldChange, sigtab$Class, function(x) max(x))
+x = sort(x, TRUE)
+sigtab$Class = factor(as.character(sigtab$Class), levels=names(x))
+# plot data
+ggplot(sigtab, aes(x=Class, y=log2FoldChange, color=Phylum)) + geom_point(size=3) + 
+  theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust=-0.1))</code></pre>
+<p><span style="color: red;"><strong>Question 10</strong></span>:
+Hopefully you could run some of the differential abundance test. Can you
+interpret the results?</p>
+<p><span style="color: green;"><strong>Answer</strong></span>:
+Unfortunately, I could not debug the code provided in the code chunk
+named <strong>“deseq”</strong>. The encountered error during the
+differential abundance analysis conducted with DESeq2 is as follow:</p>
+<pre class="r"><code>&gt; &quot;Error in estimateSizeFactorsForMatrix(counts(object), locfunc = locfunc,  : every gene contains at least one zero, cannot compute log geometric means&quot;</code></pre>
+<p>The error observed arises from an attempt to normalize a dataset
+where every feature (taxa in this context) has at least one instance of
+zero count across the samples. DESeq2 employs size factor calculations
+for normalization to account for differences in library sizes and
+sequencing depth across samples. This method uses a ‘geometric mean’
+approach for each feature across all samples to establish a baseline;
+however, the presence of zero counts in the dataset prevents the
+calculation of geometric means, as the logarithm of zero is undefined.
+Consequently, when zeros are present for all features, the size factor
+estimation fails, resulting in the reported error.</p>
+<p>The preprocessing steps suggest an iterative approach to refining the
+input data for differential abundance testing. Initially, the phyloseq
+object <code>ps</code> was subsetted to create <code>ps1</code>,
+removing unclassified and non-bacterial taxa, which may contribute to a
+more focused dataset by excluding known sources of non-bacterial DNA.
+Subsequently, <code>ps2</code> was pruned to exclude samples below a
+threshold read count, addressing uneven sequencing depth that could
+introduce bias in comparative analysis. Further processing to create
+<code>ps3</code> involved rarefaction, a standard technique to even out
+the read count across samples by sub-sampling, which also necessitated
+the exclusion of taxa not present post-rarefaction. The final version
+used for DESeq2 analysis, <code>ps4</code>, underwent prevalence
+filtering to remove rare taxa detected in a minimal number of samples or
+with low read counts, attempting to reduce the influence of potential
+contaminants or sporadic detections that could skew the results.</p>
+<p>The intended analysis, had it proceeded without computational errors,
+would have involved identifying and characterizing the taxa that differ
+significantly in abundance between the ‘Fullterm’ and ‘Preterm’ groups.
+A successful execution would involve evaluating statistical significance
+through p-value adjustment for multiple comparisons and interpreting the
+biological significance of the taxa with differential abundance. The
+analysis would yield insights into the microbial community structure’s
+association with infant development stages, providing potential
+biomarkers for distinguishing between full-term and preterm birth
+conditions. The visualization of these results through ggplot2 would
+offer an intuitive understanding of the taxa’s distribution across the
+two groups, highlighting the variations in their relative abundances in
+a biologically informative manner.</p>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
