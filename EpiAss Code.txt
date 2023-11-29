@@ -1,0 +1,871 @@
+---
+title: "DNA methylation analysis - Lab"
+subtitle: "8MEA16 - HT23"
+author: "Shumaila Sayyab"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    theme: united
+    highlight: tango
+---
+
+# 1. OPEN RSTUDIO and Load Libraries
+Open a new Rmarkdown script in RStudio and Setup the R_library path as shown below.
+
+```{r setup_RlibraryPath, eval=TRUE, echo=TRUE}
+# Set working directory
+setwd("D:/LiU/Masters/Bioinformatics/Epigenetics/Assignment_4")
+```
+
+Load the libraries for DNA methylation-Array data analysis. Here we are directly loading the packages as we are using already installed packages in R_library folder. R package: limma provides the statistical framework for testing differential methylation. R packages: minfi, missMethyl, minfiData ChAMP and DMRcate are packages developed to work with methylation data. Gviz and RColorBrewer provide functions for the visualization of the data.
+
+```{r LoadingLibraries, eval=TRUE, echo=TRUE, results='hide'}
+# List of Bioconductor packages
+bioc_packages <- c("ChAMP", "minfi", "limma", "RColorBrewer", "missMethyl", 
+                   "minfiData", "Gviz", "DMRcate", "DMRcatedata", "EpiDISH", 
+                   "ComplexHeatmap", "EnhancedVolcano", "DOSE", "ggrepel", 
+                   "enrichplot", "methylKit", "IlluminaHumanMethylation450kanno.ilmn12.hg19")
+
+# List of CRAN packages
+cran_packages <- c("stringr", "viridis", "gridExtra", "ggplot2", "reshape2", 
+                   "tidyr", "calibrate", "tidyverse", "patchwork", "cowplot", 
+                   "rmarkdown", "ggpubr")
+
+# Define list of all packages
+all_packages <- c(bioc_packages, cran_packages)
+
+# Load all packages
+for (pkg in all_packages) {
+  library(pkg, character.only = TRUE)
+}
+
+# Setup colors for plotting
+col1 <- c("CSF" = "maroon", "non-CSF" = "royalblue")
+
+# For reproducibility, set seed
+set.seed(777)
+
+# Get the 450k annotation data
+ann450k <- getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19)
+
+# examine ann450k
+head(ann450k)
+```
+
+<span style="color:red;">Question 1:</span> Can you tell, what is the name of column with CpG_id and gene information in ann450k dataframe ?
+
+<span style="color:green;">Answer</span> Based on the ann450k dataframe:
+
+- The name of the column with CpG_id is Name.
+- The name of the column with gene information is UCSC_RefGene_Name.
+
+# 2. Import raw data
+We will import and read the raw data intensity files (IDAT) with minfi package. The dataset Raw_data have been provided to you in your Lab_assignment4 folder already, so you just need to point R towards the directory path they are saved.
+
+- list.files function will return the list of files in the specified directory.
+- read.metharray.sheet function, takes the path to rawdata and samplesheet. The samplesheet is a CSV (comma-separated) file containing. one line per sample, with a number of columns describing each sample.
+- read.metharray.exp function create a column called Basename which specifies the location of each individual IDAT file in the experiment. This generates an RGChannelSet object containing the raw green and red intensity data.
+
+```{r importRawData, eval=TRUE, echo=TRUE}
+# set the data directory
+dataDirectory <- "Raw_data"
+
+# list the files
+list.files(dataDirectory, recursive = TRUE)
+
+# read in the sample sheet for the experiment
+targets <- read.metharray.sheet(dataDirectory, pattern="Sample_sheet.csv")
+targets
+
+# read in the raw data from the IDAT files; warnings can be ignored.
+rgSet <- read.metharray.exp(targets=targets)
+
+# Get an overview of the raw data i.e. rgSet
+rgSet
+
+# Get the phenotype data (pData)
+pData(rgSet)
+getManifest(rgSet)
+
+# change the names of the samples into something a little more descriptive and meaningful
+targets$ID <- paste(targets$Sample_ID,targets$Sample_Group,sep=".")
+sampleNames(rgSet) <- targets$ID
+
+# Check the names have been updated by looking at the rownames of the phenoData
+pData(rgSet)
+
+## save the target information in sample variable
+samples <- targets
+samples
+
+# Here we save the raw rgSet object that can be used later ..
+save(rgSet,file = "rgSet_ME.RData")
+```
+
+# 3. Preprocess raw data
+Let us now transform RGChannelSet object to MethylSet object containing the methylated and unmethylated signals. We will use function preprocessRaw which uses the array design to match up the different probes and color channels to construct the methylated and unmethylated signals. No normalization is performed yet. As we will see in a later section #7, there are several normalization options that automatically take care of the preprocessing and conversion of a RGChannelSet object to a GenomicRatioSet object.
+
+```{r PreprocessRawData, eval=TRUE, echo=TRUE}
+MSet <- preprocessRaw(rgSet)
+MSet
+
+# Compare to previous object
+rgSet
+
+head(getMeth(MSet)[,1:14])
+head(getUnmeth(MSet)[,1:3])
+```
+
+<span style="color:red;">Question 2:</span> When you transform RGChannelSet object to MethylSet object, notice that the red and green assays have been transformed in Meth and Unmeth signals. Compare both the objects (rgSet and MSet). what differences did you noticed?
+
+<span style="color:green;">Answer</span> There are several key differences between the RGChannelSet object (`rgSet`) and the MethylSet object (`MSet`) after the transformation using `preprocessRaw`. Here are the main differences:
+
+1. **Assays**: 
+   - In `rgSet`, the assays are represented as `Green` and `Red`, which correspond to the raw intensity data from the green and red channels of the Illumina beadchip.
+   - In `MSet`, the assays have been transformed into `Meth` (methylated) and `Unmeth` (unmethylated) signals. This transformation is central to methylation analysis as it represents the processed methylation data.
+
+2. **Dimension**:
+   - The dimension of `rgSet` is 622,399 x 14, meaning there are 622,399 probes and 14 samples.
+   - The dimension of `MSet` is reduced to 485,512 x 14. This reduction in probe numbers indicates that some probes have been filtered out during the transformation process, possibly due to being non-CpG probes or other quality-related criteria.
+
+3. **Row Names**:
+   - In `rgSet`, the row names are numeric IDs corresponding to each probe.
+   - In `MSet`, the row names have been converted to CpG site IDs (like `cg00050873`, `cg00212031`, etc.), which are more informative for methylation analysis.
+
+4. **Preprocessing Information**:
+   - `MSet` contains preprocessing information, indicating that no normalization or background correction has been performed yet. This is specific to `MethylSet` objects and is not present in the `RGChannelSet`.
+
+5. **Data Type**: 
+   - The `rgSet` object contains the raw intensity data directly from the IDAT files.
+   - The `MSet` object, on the other hand, represents a processed form of the data, where the raw intensities have been converted into methylation and unmethylation values.
+
+## Quality Control
+An important step before normalization is Quality Control.TThe functions getQC and plotQC are designed to extract and plot the quality control information from the MethylSet. In the resulting plot, the line separating ”bad” from ”good” samples represent a useful cutoff, which is not always very clear and may have to be adapted to a specific dataset.
+
+```{r QualityCTRL, eval=TRUE, echo=TRUE}
+# Extracting Quality Control Information:
+qc <- getQC(MSet)
+
+# Plotting Quality Control Data:
+plotQC(qc)
+
+# Check the density plot distribution of raw MethylSet object
+densityPlot(MSet, sampGroups = MSet$Sample_Group)
+```
+
+The function detectionP calculate detection p-values. We can generate a detection p-value for every CpG in every sample, which is indicative of the quality of the signal. The method used by minfi to calculate detection p-values compares the total signal (M + U) for each probe to the background signal level, which is estimated from the negative control probes. Very small p-values are indicative of a reliable signal while large p-values, for example >0.01, generally indicate a poor quality signal.
+
+Plotting the mean detection p-value for each sample allows us to gauge the general quality of the samples in terms of the overall signal reliability. Samples that have many failed probes will have relatively large mean detection p-values.
+
+```{r SampleQualityAssessment, eval=TRUE, echo=TRUE}
+# Calculating Detection P-Values:
+detP <- detectionP(rgSet)
+
+# Plot control probe signals
+controlStripPlot(rgSet, controls = "BISULFITE CONVERSION II")
+  
+# Generate a PDF QC report
+qcReport(rgSet, sampNames = samples$Sample_Name, sampGroups = samples$Group, pdf = "qcReport_1.pdf")
+
+# Reshape detP to long format
+detP_long <- as.data.frame(detP) %>% 
+  tibble::rownames_to_column("CpG") %>%
+  pivot_longer(cols = -CpG, names_to = "Sample", values_to = "DetectionPValue")
+
+# Adjust sample names to match targets
+detP_long$Sample <- sub("\\..*", "", detP_long$Sample)
+
+# Merge with sample group information
+detP_long <- merge(detP_long, targets[, c("Sample_ID", "Sample_Group")], 
+                   by.x = "Sample", by.y = "Sample_ID")
+
+# Calculate mean detection p-values
+mean_detP <- aggregate(DetectionPValue ~ Sample + Sample_Group, data = detP_long, mean)
+  
+# Convert Sample_Group to a factor with levels ordered as desired
+mean_detP$Sample_Group <- factor(mean_detP$Sample_Group, levels = c("CFS", "Ctrl"))
+  
+# Arrange the mean_detP by Sample_Group
+mean_detP <- mean_detP %>% 
+    arrange(Sample_Group, Sample)
+  
+# Set color palette
+pal <- brewer.pal(8, "Dark2")
+
+# Plot using ggplot2 with manual y-axis limits ensuring the threshold line is included
+ggplot(mean_detP, aes(x = reorder(Sample, Sample_Group, function(x) -length(x)), y = DetectionPValue, fill = Sample_Group)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  scale_fill_manual(values = pal) +
+  theme_minimal() +
+  labs(y = "Mean Detection P-Values", x = "") + # Removed "Sample" to avoid confusion
+  geom_hline(yintercept = 0.01, color = "red", linetype = "dashed") +
+  ylim(0, max(c(0.01, max(mean_detP$DetectionPValue) * 1.1))) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+  scale_x_discrete(limits = with(mean_detP, Sample[order(Sample_Group, Sample)])) # Ensure the order is kept on the x-axis
+```
+
+<span style="color:red;">Question 3:</span> After checking the Quality control:
+
+1. How many samples are bad in your dataset based on plotQC?
+
+2. Was there any failed sample based on large mean detection p-values?
+
+<span style="color:green;">Answer</span> Answer for each part is given below:
+
+1. From the new QC plot, it seems that all the samples fall within a similar range for both methylated and unmethylated median intensities, which suggests they are of generally good quality. There are no samples that stand out as having markedly different median intensity values compared to others, which could have indicated poor quality.
+
+2. From the mean detection p-values, all samples have mean detection p-values well below the 0.01 threshold, indicated by the red dashed line. Therefore, based on this plot, there are no failed samples indicated by large mean detection p-values.
+
+Based on the above observations, it is important to remove any poor quality samples. These samples can be easily excluded from the analysis using a detection p-value cutoff, for example >0.05.
+
+```{r RemovePoorQuality, eval=TRUE, echo=TRUE}
+# remove poor quality samples based on detection p-value cutoff of >0.05
+keep <- colMeans(detP) < 0.05  # Logical vector indicating which samples to keep
+rgSet <- rgSet[, keep]  # Subset rgSet to include only good quality samples
+table(keep)  # Display a table to see how many samples are kept vs removed
+
+# remove poor quality samples from targets data
+# Ensure that 'samples' is a data frame where rows correspond to samples
+# If 'samples' is already correctly formatted, this line works as intended
+samples <- samples[keep, ]
+dim(samples)  # Check the new dimensions of the 'samples' data frame
+samples[, 1:5]  # View the first few columns of the updated 'samples' data frame
+
+# remove poor quality samples from detection p-value table
+# Ensure that 'detP' is a matrix/data frame with samples as columns
+detP <- detP[, keep]  # Subset detP to include only good quality samples
+table(keep)  # Display a table to see how many samples are kept vs removed
+```
+
+# 4. Normalization
+To minimise the unwanted variation within and between samples, various data normalisations can be applied. Many different types of normalisation have been developed for methylation arrays which are available in minfi. An important question is to decide which one is best or most optimal for your particular dataset. Here is a short summary of each method:
+
+preprocessRaw: Converts a RGChannelSet to a MethylSet by converting the Red and Green channels into a matrix of methylated signals and a matrix of unmethylated signals. No normalization is performed.
+
+preprocessIllumina: Convert a RGChannelSet to a MethylSet by implementing the preprocessing choices as available in Genome Studio: background subtraction and control normalization. Both of them are optional and turning them off is equivalent to raw preprocessing.
+
+preprocessSWAN: Perform Subset-quantile within array normalization SWAN, a within-array normalization correction for the technical differences between the Type I and Type II array designs.
+
+```{r Normalisation, eval=TRUE, echo=TRUE}
+# Normalize the data; this results in a GenomicRatioSet object
+# Quantile normalization
+mSetSq <- preprocessQuantile(rgSet)
+
+# SWAN normalization
+mSetSw <- preprocessSWAN(rgSet)
+
+# Functional normalization
+mSetFn <- preprocessFunnorm(rgSet)
+
+# Setup plotting area to display multiple plots
+par(mfrow = c(1, 4))
+
+# Plot distributions prior to normalization for sample 1
+plotBetasByType(MSet[, 1], main = "Raw")
+
+# The normalized object is a GenomicRatioSet which does not contain
+# the necessary probe info, so we need to extract this from the MethylSet first.
+# Extracting probe info for Type I and Type II
+typeI <- getProbeInfo(MSet, type = "I")[, c("Name", "nCpG")]
+typeII <- getProbeInfo(MSet, type = "II")[, c("Name", "nCpG")]
+probeTypes <- rbind(typeI, typeII)
+probeTypes$Type <- rep(x = c("I", "II"), times = c(nrow(typeI), nrow(typeII)))
+
+# Now plot the distributions of the normalized data for sample 1
+# Displaying the different normalization methods
+plotBetasByType(getBeta(mSetSq)[, 1], probeTypes = probeTypes, main = "Quantile Normalized")
+plotBetasByType(getBeta(mSetSw)[, 1], probeTypes = probeTypes, main = "SWAN Normalized")
+plotBetasByType(getBeta(mSetFn)[, 1], probeTypes = probeTypes, main = "Funnorm Normalized")
+
+# Predicting sex information of the samples using X and Y chromosome information
+samples$Sex.predicted <- mSetSq$predictedSex
+```
+
+<span style="color:red;">Question 4:</span> In this dataset, we are comparing ME/CFS and non-CFS samples using PBMC T-lymphocyte samples, which normalization method you think would be optimal for our dataset?
+
+<span style="color:green;">Answer</span> Choosing the optimal normalization method for the dataset should take into account both technical and biological considerations. Here's a reasoned choice based on the plots:
+
+**Quantile Normalization** tends to make the data more homogenous across all probes and samples by forcing the same distribution, which is good for technical consistency but might not always respect the biological variability, especially in disease vs. control comparisons where biological differences are expected [1].
+
+**SWAN Normalization** is designed to adjust the technical differences between the Type I and Type II probes on the Illumina arrays. This could be particularly important if these technical differences are expected to impact the results significantly, as they might in PBMC T-lymphocyte samples where cell type-specific methylation patterns are of interest [2].
+
+**FunNorm Normalization** uses control probes to correct for batch effects and other technical variations. This method is particularly useful when you're concerned about preserving the biological differences that are key to understanding ME/CFS versus non-CFS samples. It allows you to minimize technical noise while maintaining the integrity of the biological signals [3].
+
+Given the plots shown:
+
+- The **Quantile Normalized** plot shows a tighter distribution, which might be too restrictive and potentially mask true biological variability.
+- The **SWAN Normalized** plot appears to provide a good balance between Type I and Type II probes but doesn't seem to correct the distribution as tightly as Quantile normalization, potentially preserving more biological variability.
+- The **FunNorm Normalized** plot seems to have a distribution similar to SWAN but is potentially more tuned to correct technical variation without impacting biological variation.
+
+Considering these points, **FunNorm** seems like a suitable choice for your dataset. It is likely to offer a good compromise between correcting technical variability and preserving biological differences, which is crucial for a disease vs. control study. Moreover, FunNorm's reliance on control probes makes it a robust choice in the context of batch effects, which are common in large-scale epigenetic studies.
+
+**References:**
+1. Bolstad BM, Irizarry RA, Astrand M, Speed TP. A comparison of normalization methods for high density oligonucleotide array data based on variance and bias. Bioinformatics. 2003 Jan 22;19(2):185-93. doi: 10.1093/bioinformatics/19.2.185.
+2. Maksimovic J, Gordon L, Oshlack A. SWAN: Subset-quantile Within Array Normalization for Illumina Infinium HumanMethylation450 BeadChips. Genome Biol. 2012;13(6):R44. doi:10.1186/gb-2012-13-6-r44.
+3. Fortin JP, Labbe A, Lemire M, et al. Functional normalization of 450k methylation array data improves replication in large cancer studies. Genome Biol. 2014;15(11):503. doi:10.1186/s13059-014-0503-2.
+
+```{r VisualizationBeforeAfterNormalization, eval=TRUE, echo=TRUE}
+# Set up plotting parameters
+par(mfrow = c(1, 2))  # Layout for 2 plots side by side
+
+# Density plot for raw data
+densityPlot(rgSet, sampGroups = samples$Sample_Group, main = "Raw data", legend = FALSE, pal = col1)
+# Adding legend manually to the raw data plot
+# legend("topright", legend = levels(factor(samples$Sample_Group)), text.col = col1, bty = "n") # for some strange reasons I cannot do this and debugging didn't solve either!
+
+# Density plot for quantile normalized data
+densityPlot(getBeta(mSetSq), sampGroups = samples$Sample_Group, main = "Quantile Normalized", legend = FALSE, pal = col1)
+# Adding legend manually to the normalized data plot
+# legend("topright", legend = levels(factor(samples$Sample_Group)), text.col = col1, bty = "n")
+
+# Data exploration - MDS plot
+# Multi-Dimensional Scaling (MDS) plot to visualize sample relationships
+mdsPlot(getBeta(mSetSq), numPositions = 1000, sampNames = samples$Sample_Name, sampGroups = samples$Sample_Group,
+        pch = 19, pal = col1, legendPos = "bottomleft",
+        main = "Beta value MDS")
+```
+
+# 5. Filtering
+Poor performing probes are generally filtered out before differential methylation analysis. By removing them we perform fewer statistical tests and reduced multiple testing penalty. We filter out probes that have failed in one or more samples based on detection p-value. Depending on the nature of your samples and your biological question you may also choose to filter out the probes from the X and Y chromosomes or probes that are known to have common SNPs at the CpG site or are cross-reactive.
+
+```{r filtering, eval=TRUE, echo=TRUE}
+# Ensure probes are in the same order in the mSetSq and detP objects
+detP <- detP[match(featureNames(mSetSq), rownames(detP)),]
+
+# Remove any probes that have failed in one or more samples
+# Here we're keeping probes that have a detection p-value less than 0.01 in all samples
+keep <- rowSums(detP < 0.01) == ncol(mSetSq)
+table(keep)
+
+# Subset the GenomicRatioSet with the probes that passed the filter
+mSetSqFlt <- mSetSq[keep,]
+mSetSqFlt.bf <- mSetSqFlt  # Backup of the filtered set before further filtering
+
+# Remove probes on the sex chromosomes if your data includes males and females
+keep <- !(featureNames(mSetSqFlt) %in% ann450k$Name[ann450k$chr %in% c("chrX", "chrY")])
+table(keep)
+mSetSqFlt <- mSetSqFlt[keep,]
+
+# Check dimensions after filtering sex chromosome probes
+dim(mSetSqFlt)
+
+# Remove probes with SNPs at the CpG site
+gset <- mapToGenome(mSetSqFlt)
+mSetSwFlt <- dropLociWithSnps(gset)
+
+# Check dimensions after filtering SNP-associated probes
+dim(mSetSwFlt)
+
+# Exclude cross-reactive probes
+xReactiveProbes <- read.table("48639-non-specific-probes-Illumina450k.csv", sep = ",", header = TRUE)
+keep <- !(featureNames(mSetSwFlt) %in% xReactiveProbes$TargetID)
+table(keep)
+
+# Subset the data with probes that are not cross-reactive
+mSetSwFlt <- mSetSwFlt[keep,]
+
+# Check dimensions after removing cross-reactive probes
+dim(mSetSwFlt)
+
+# Calculate M values and beta values for filtered data
+mVals <- getM(mSetSqFlt)
+bVals <- getBeta(mSetSqFlt)
+
+# Check the first few values
+head(bVals[, 1:5])
+head(mVals[, 1:5])
+
+# MDS plots to visualize data after all filtering steps
+par(mfrow = c(1, 2))
+mdsPlot(dat = bVals, numPositions = 1000, sampNames = samples$Sample_ID, sampGroups = samples$Sample_Group,
+        pch = 19, pal = col1, legendPos = "topright", main = "Norm. beta-values after filtering")
+mdsPlot(dat = mVals, numPositions = 1000, sampNames = samples$Sample_ID, sampGroups = samples$Sample_Group,
+        pch = 19, pal = col1, legendPos = "topright", main = "Norm. M-values after filtering")
+```
+
+<span style="color:red;">Question 5:</span> Can you see why SNP can be a problem in methylation data analysis (Hint: C to T conversions are the most common type of SNP in the human genome)?
+
+<span style="color:green;">Answer</span> SNPs can be problematic in methylation data analysis, especially when they occur at CpG sites. The issue arises because bisulfite treatment, which is commonly used to assess DNA methylation, converts unmethylated cytosines to uracil (and subsequently to thymine), while methylated cytosines remain unchanged. If a C to T SNP is present at a CpG site, it can be incorrectly read as an unmethylated cytosine, leading to false interpretations of methylation status. This is particularly problematic because C to T conversions are the most common type of SNP in the human genome. Therefore, filtering out such SNPs is essential to ensure the accuracy of methylation analysis.
+
+**References:**
+1. Maksimovic J, Gordon L, Oshlack A. SWAN: Subset-quantile Within Array Normalization for Illumina Infinium HumanMethylation450 BeadChips. Genome Biol. 2012;13(6):R44. doi:10.1186/gb-2012-13-6-r44【43†source】【44†source】.
+2. O'Leary NA, Wright MW, Brister JR, et al. Reference sequence (RefSeq) database at NCBI: current status, taxonomic expansion, and functional annotation. Nucleic Acids Res. 2016 Jan 4;44(D1):D733-45. doi: 10.1093/nar/gkv1189【45†source】【46†source】【47†source】.
+3. Huang Y, Pastor WA, Shen Y, Tahiliani M, Liu DR, Rao A. The behaviour of 5-hydroxymethylcytosine in bisulfite sequencing. PLoS One. 2010 Jan 15;5(1):e8888. doi: 10.1371/journal.pone.0008888【57†source】【58†source】.
+4. Poulin M, Zhou JY, Yan L, Shioda T. Pyrosequencing Methylation Analysis. Methods Mol Biol. 2018;1856:283-296. doi: 10.1007/978-1-4939-8751-1_17【66†source】.
+
+<span style="color:red;">Question 6:</span> How many probes were filtered due to (i) failure in one or more samples based on detection p-value. (ii) X and Y chromosomes (iii) common SNPs at the CpG site and (iv) cross-reactive probes.
+
+<span style="color:green;">Answer</span> Based on the output, the number of probes filtered due to various criteria are as follows:
+
+(i) **Failure in one or more samples based on detection p-value**: 775 probes were filtered out because they did not meet the detection p-value threshold across all samples.
+
+(ii) **X and Y chromosomes**: 11,329 probes located on the sex chromosomes were filtered out.
+
+(iii) **Common SNPs at the CpG site**: The filtering process for SNPs at the CpG sites reduced the probe count from 473,408 to 456,287, indicating that 17,121 probes were filtered out.
+
+(iv) **Cross-reactive probes**: 26,557 cross-reactive probes were filtered out.
+
+<span style="color:red;">Question 7:</span> Plot MDS of the beta values before and after the X and Y chromosome filtering. Did you see any differences in the plots?
+
+<span style="color:green;">Answer</span> Let's create the plots first:
+
+```{r Q7Plots, eval=TRUE, echo=TRUE}
+# MDS plot before filtering out sex chromosome probes
+mdsPlotBefore <- mdsPlot(dat = getBeta(mSetSqFlt.bf), numPositions = 1000, sampNames = samples$Sample_ID, sampGroups = samples$Sample_Group, 
+                         pch = 19, pal = col1, main = "Beta values MDS before X and Y filtering")
+
+# MDS plot after filtering out sex chromosome probes
+mdsPlotAfter <- mdsPlot(dat = bVals, numPositions = 1000, sampNames = samples$Sample_ID, sampGroups = samples$Sample_Group,
+                        pch = 19, pal = col1, main = "Beta values MDS after X and Y filtering")
+```
+
+The observed difference is quire subtle. It appears that the filtering process has a more pronounced impact on the CFS samples compared to the Ctrl samples. For example, the movement of CFS samples, such as S4 moving significantly to the left and down, and S5 shifting right and lower, suggests that the probes on the sex chromosomes may have been contributing to the variance within the CFS group. The slight repositioning of samples like S7 indicates minor adjustments in their methylation profile post-filtering. These changes hint at a potential influence of sex chromosome methylation on the samples' overall methylation patterns, specifically within the CFS group.
+
+# 6. Singular value decomposition
+Singular value decomposition (SVD) analyses is performed to identify major sources of variation using the ChAMP package champ.SVD function. Analyses on the filtered and normalised beta matrix are performed. Any confounding components that contributed to significant variation within the data set is identified. Corrections are performed for the identified components using champ.runCombat from the SVA package. This allows us to identify any technical bias in data and correct batch affects.
+
+```{r SVD, eval=TRUE, echo=TRUE}
+# Convert all variables in the 'samples' dataframe to character type
+samples[] <- lapply(samples, as.character)
+
+# Update Sample_ID in targets to match column names in bVals
+targets$Sample_ID_Group <- paste(targets$Sample_ID, targets$Sample_Group, sep=".")
+
+# Align bVals columns with targets
+bVals <- bVals[, targets$Sample_ID_Group]
+
+# Convert bVals to a data frame for compatibility with champ.SVD()
+bVals_df <- as.data.frame(bVals)
+
+# Perform SVD before batch correction to identify major sources of variation
+# Using a data frame version of bVals
+champ.SVD(beta = bVals_df, pd = targets)
+
+# Apply ComBat method for batch correction on beta values
+bVals.corrected <- champ.runCombat(beta = bVals, pd = samples)
+
+# Apply ComBat method for batch correction on M values
+mVals.corrected <- champ.runCombat(beta=mVals,pd=samples,logitTrans = F)
+
+# Perform SVD after batch correction to assess changes in variation
+# Using the corrected beta values
+champ.SVD(beta = as.data.frame(bVals.corrected), pd = samples)
+
+# Visual comparison using MDS plots before and after batch correction
+par(mfrow=c(1,2))
+
+# MDS plot for beta values before batch correction
+mdsPlot(dat = bVals, numPositions = 1000, sampNames = samples$Sex.predicted, 
+        sampGroups = samples$Sample_Group, pch = 19, pal = col1,
+        legendPos = "topright", main = "Beta-Values before batch-correction")
+
+# MDS plot for beta values after batch correction
+mdsPlot(dat = bVals.corrected, numPositions = 1000, sampNames = samples$Sex.predicted, 
+        sampGroups = samples$Sample_Group, pch = 19, pal = col1,
+        legendPos = "topright", main = "Beta-Values After batch-correction")
+```
+
+<span style="color:red;">Question 8:</span> What does MDS before and after batch correction tells you? Is there any confounding factor that needs to be taken into account in Differential methylation model? (Hint: Check the SVD plot or MDS)
+
+<span style="color:green;">Answer</span> Multidimensional scaling (MDS) plots are crucial for visualizing and understanding the variability in a dataset before and after batch correction. The key observation in these plots before batch correction is the apparent clustering of samples by sex, indicated by 'M' and 'F' labels, which suggests that sex is a significant source of variation in the dataset. After batch correction, if the clustering by sex becomes less pronounced and the samples are more intermixed, it implies that the correction has adjusted for some of the variability that was associated with sex. However, if the separation by sex remains, it indicates that sex is a biological factor that persists beyond technical artifacts and should be considered as a potential confounding factor in differential methylation analysis.
+
+The MDS plots also provide insight into whether the batch correction has successfully mitigated batch effects without overcorrecting and removing biological signals of interest. If the before and after plots show a marked difference in the distribution of the control (Ctrl) and Chronic Fatigue Syndrome (CFS) samples, it suggests that batch effects were initially masking or exaggerating the biological differences between these conditions. Therefore, in the context of differential methylation, both sex and the condition being studied (CFS vs. Ctrl) are important factors to consider. These factors need to be accounted for in the differential methylation model to ensure that any findings are reflective of true biological differences and not confounded by technical or other non-biological variability.
+
+# 7. Cell type deconvolution analysis
+Here we infer the relative proportion of a priori known cell-types (i.e., lymphocytes, monocytes, B-cells, and neutrophils) present within a sample representing a mixture of such cell types in peripheral blood samples. It is a modified version of Houseman et al. (2012) regression calibration approach for deconvoluting heterogeneous tissue sources like blood. We have used here HEpiDISH function from EpiDISH package in R.
+
+```{r CTPA, eval=TRUE, echo=TRUE}
+# Load the data set for differential methylation
+data("centDHSbloodDMC.m")
+
+# Perform cell type deconvolution using the HEpiDISH function
+frac.m <- hepidish(beta.m = bVals.corrected, 
+                   ref1.m = centEpiFibIC.m, 
+                   ref2.m = centBloodSub.m[, 1:7], # Selecting columns 1 to 7
+                   h.CT.idx = 3, 
+                   method = 'RPC')
+
+# take a look at frac.m object
+# str(frac.m)
+# print(frac.m)
+
+# Split the matrix into two: one for CFS and one for Ctrl
+frac.m.CFS <- frac.m[1:7, ]  # CFS group
+frac.m.Ctrl <- frac.m[8:14, ]  # Ctrl group
+
+# Create a new data frame for plotting that includes a group identifier
+frac.m.long <- rbind(data.frame(CellTypeProportion = as.vector(frac.m.CFS), 
+                                CellType = rep(colnames(frac.m.CFS), each = nrow(frac.m.CFS)),
+                                Group = 'CFS'),
+                     data.frame(CellTypeProportion = as.vector(frac.m.Ctrl), 
+                                CellType = rep(colnames(frac.m.Ctrl), each = nrow(frac.m.Ctrl)),
+                                Group = 'Ctrl'))
+
+ggplot(frac.m.long, aes(x = CellType, y = CellTypeProportion, fill = Group)) + 
+  geom_boxplot() +
+  scale_fill_manual(values = c("blue", "red")) +  # You can choose your own colors
+  labs(title = "Cell Type Proportions in Blood Samples by Group",
+       x = "Cell Types",
+       y = "Proportion") +
+  theme_minimal() +
+  theme(legend.position = "right")
+```
+
+<span style="color:red;">Question 9:</span> Can you tell, if there are cell type differences between CFS and Ctrl group?
+
+<span style="color:green;">Answer</span> The box plot illustrates the distributions of cell type proportions in blood samples from Chronic Fatigue Syndrome (CFS) patients compared to a control group (Ctrl). Visual inspection of the plot shows variability between the two groups across various cell types. Notably, CD8T cells exhibit a higher median proportion in the CFS group, while the spread of data points for monocytes (Mono) and eosinophils (Eosino) also suggests possible differences in distribution.
+
+To conclusively determine whether these observed differences are statistically significant, inferential statistical methods such as t-tests or ANOVA would need to be employed. The box plot alone is indicative but not confirmatory; only through appropriate statistical testing can one affirm if the differences in cell type proportions are due to chance or reflect a true disparity between the CFS and Ctrl groups.
+
+# 8. Differential Methylation Analysis
+The biological question of interest for this particular dataset is to discover differentially methylated CpGs (DMCs) between the CFS vs Ctrl group. To do this, we will design a linear model in limma package (See manual for details). As previously seen, the sex contributed as significant source of variation and could be confounding factor in this analysis. Therefore, we will use sex as co-variate in the design matrix. Using the topTable function in limma, the differentially methylated genes per comparison/contrast can be extracted.
+
+```{r DMC_bVal.corrected, eval=TRUE, echo=TRUE}
+# Preparing factors of interest and covariates
+group <- factor(samples$Sample_Group) # Factor for sample groups (CFS vs non_CFS)
+sex <- factor(samples$Sex) # Factor for sex as a confounding variable
+
+# Constructing design matrix with the main variable and covariate
+design <- model.matrix(~0 + group + sex, data = samples)
+colnames(design) <- c(levels(group), "sex")
+contMatrix <- makeContrasts(CFS-Ctrl, levels = design)
+
+# Fitting linear model to the data using limma package
+fit <- lmFit(bVals.corrected, design)
+fit2 <- contrasts.fit(fit, contMatrix)
+fit2 <- eBayes(fit2)
+summary(decideTests(fit2))
+
+# Annotating the DMCs with genomic information
+ann450kSub_combat <- ann450k[match(rownames(bVals.corrected), ann450k$Name),
+                             c(1:ncol(ann450k))]
+
+# Extracting DMCs and applying multiple testing correction
+DMCs <- topTable(fit2, coef = 1, number = Inf, genelist = ann450kSub_combat)
+
+# Filtering top DMCs based on adjusted P-value and log fold change thresholds
+topset1 <- subset(DMCs, adj.P.Val < 0.05 & abs(logFC) > 0.2)
+dim(topset1)
+
+# Filtering top DMCs based on nominal P-value and log fold change thresholds
+topset2 <- subset(DMCs, P.Value < 0.05 & abs(logFC) > 0.2)
+dim(topset2)
+head(topset2[, c("Name", "UCSC_RefGene_Name")])
+
+# Saving top differentially methylated genes for further analysis
+top_DMG <- topset2[, c("Name", "UCSC_RefGene_Name")]
+write.table(top_DMG, "top_genes_bValCorrected_values_corrected", sep = ",", quote = F, row.names = F)
+
+# Plotting beta values for the top differentially methylated site
+plotCpg(bVals, cpg = "cg15145296", pheno = samples$Sample_Group, ylab = "Beta values")
+```
+
+<span style="color:red;">Question 10A:</span> How many DMC pass the FDR adj.P.Val < 0.05 and nominal P.Value<0.05?
+
+<span style="color:green;">Answer</span> According to the output:
+
+- For FDR adjusted P-value < 0.05: There were **0 DMCs** that passed this threshold (`dim(topset1)` returned 0 rows).
+  
+- For nominal P-value < 0.05: There were **130 DMCs** that passed this threshold (`dim(topset2)` returned 130 rows).
+
+<span style="color:red;">Question 10B:</span> Repeat the DMC identifcation by using M-values instead of beta-Values, Did you find any differences in results (Hit: Compare the top DMC site)?
+
+```{r DMC_mVal.corrected, eval=TRUE, echo=TRUE}
+# Preparing factors of interest and covariates
+group <- factor(samples$Sample_Group) # Factor for sample groups (CFS vs non_CFS)
+sex <- factor(samples$Sex) # Factor for sex as a confounding variable
+
+# Constructing design matrix with the main variable and covariate
+design <- model.matrix(~0 + group + sex, data = samples)
+colnames(design) <- c(levels(group), "sex")
+contMatrix <- makeContrasts(CFS-Ctrl, levels = design)
+
+# Fitting linear model to the data using limma package for corrected M-values
+fitM_corrected <- lmFit(mVals.corrected, design)
+fitM_corrected <- contrasts.fit(fitM_corrected, contMatrix)
+fitM_corrected <- eBayes(fitM_corrected)
+summary(decideTests(fitM_corrected))
+
+# Annotating the DMCs with genomic information for corrected M-values
+ann450kSub_combat_M <- ann450k[match(rownames(mVals.corrected), ann450k$Name), c(1:ncol(ann450k))]
+
+# Extracting DMCs and applying multiple testing correction for corrected M-values
+DMCs_M <- topTable(fitM_corrected, coef = 1, number = Inf, genelist = ann450kSub_combat_M)
+
+# Filtering top DMCs based on adjusted P-value and log fold change thresholds for corrected M-values
+topset1_M <- subset(DMCs_M, adj.P.Val < 0.05 & abs(logFC) > 0.2)
+
+# Filtering top DMCs based on nominal P-value and log fold change thresholds for corrected M-values
+topset2_M <- subset(DMCs_M, P.Value < 0.05 & abs(logFC) > 0.2)
+
+# Saving top differentially methylated genes for further analysis for corrected M-values
+write.table(topset2_M, "top_genes_mValCorrected_corrected.csv", sep = ",", quote = F, row.names = F)
+
+# Plotting corrected M-values for the top differentially methylated site
+plotCpg(mVals.corrected, cpg = rownames(topset2_M)[1], pheno = samples$Sample_Group, ylab = "M values")
+
+# Since 'topset2_M' and 'topset2' contain the top DMCs from mVals.corrected and bVals.corrected respectively
+topSiteBeta <- rownames(topset2)[1]  # Top site from Beta-value analysis
+topSiteM_corrected <- rownames(topset2_M)[1]  # Top site from M-value analysis
+
+# Check if the top sites are the same
+isSameTopSite <- topSiteM_corrected == topSiteBeta
+print(paste("The top DMC site is the same for both corrected M-values and beta-values:", isSameTopSite))
+
+# Compare the statistics of the top site from both analyses if they are different
+if (!isSameTopSite) {
+  topSiteStatsM_corrected <- topset2_M[1, ]
+  topSiteStatsBeta <- topset2[which(rownames(topset2) == topSiteBeta), ]
+  
+  print("Statistics for the top DMC site using corrected M-values:")
+  print(topSiteStatsM_corrected)
+  
+  print("Statistics for the top DMC site using beta-values:")
+  print(topSiteStatsBeta)
+}
+```
+Yes, there were differences in the results when comparing the top differentially methylated CpG (DMC) sites identified using M-values versus beta-values:
+
+1. **Different Genomic Locations and Associated Genes**:
+   - The top DMC identified using corrected M-values (cg01236616) is located on chromosome 12 and is associated with the gene `POP5`.
+   - The top DMC identified using beta-values (cg15145296) is on chromosome 3 and does not have an associated gene listed in the provided data.
+
+2. **Direction and Magnitude of Methylation Changes**:
+   - The top M-value DMC (cg01236616) showed a notable decrease in methylation in the CFS group (logFC = -0.979).
+   - The top beta-value DMC (cg15145296) also indicated a decrease in methylation, albeit with a smaller magnitude (logFC = -0.253).
+
+3. **Statistical Significance**:
+   - The top DMC identified with M-values had a high adjusted P-value (0.739), suggesting it wasn't statistically significant.
+   - The top DMC identified with beta-values had a lower adjusted P-value (0.23), but it still indicates a lack of strong statistical significance.
+
+This analysis indicates that the use of corrected M-values versus beta-values in differential methylation analysis can lead to different top DMCs being identified, both in terms of their genomic locations and the extent of methylation changes.
+
+<span style="color:red;">Question 11:</span> What are the top 5 differentially methylated CpG sites? Which genes are affected? Is there anything known about these genes and the ME/CFS?
+
+<span style="color:green;">Answer</span> Please see the output of the coke chunk below (given only for batch-corrected beta values):
+
+```{r Q11, eval=TRUE, echo=TRUE}
+# Assuming 'topset2' is already sorted by P.Value or another statistic of interest
+top5_DMCs <- head(topset2, 5)
+
+# Extracting the names of the top 5 CpG sites and the associated gene names
+top5_info <- top5_DMCs[, c("Name", "UCSC_RefGene_Name")]
+
+# Print the information to the console
+print(top5_info)
+```
+
+- cg10117599 is associated with the gene PRKAR1B. This gene encodes a protein kinase, which is a type of enzyme that modifies other proteins by chemically adding phosphate groups to them. PRKAR1B is involved in various cellular processes, including signal transduction, cell division, and regulation of gene expression.
+- cg07155381 is associated with the gene RPH3AL. This gene is involved in exocytosis, a process that cells use to release molecules to the extracellular space. It has been implicated in neural cell function and might play a role in neurological diseases.
+
+The gene PRKAR1B, which is implicated by the differentially methylated site cg10117599, encodes a component of protein kinase A, an enzyme integral to the cyclic AMP signaling pathway. This pathway is crucial for numerous cellular processes, including those related to hormone response, gene expression regulation, and cell division. Given the complex symptomatology of Myalgic Encephalomyelitis/Chronic Fatigue Syndrome (ME/CFS), which often encompasses cognitive and neurological impairments, any perturbations in this signaling could potentially contribute to the disease's pathology. The cAMP pathway's involvement in immune system regulation is also noteworthy, considering the immune dysfunctions observed in ME/CFS.
+
+For RPH3AL, associated with cg07155381, its role in neural exocytosis links it to the critical function of neurotransmitter release, vital for communication between neurons. Alterations in this process could resonate with the neurological symptoms frequently reported by patients with ME/CFS, such as cognitive difficulties, disrupted sleep patterns, and widespread pain. As exocytosis is fundamental to neural functioning, any disruptions here could suggest a pathway that might be explored in the context of ME/CFS and its characteristic neurological manifestations.
+
+**References:**
+
+1. Wong TH, Chiu WZ, Breedveld GJ, Li KW, Verkerk AJMH, Hondius D, et al. PRKAR1B mutation associated with a new neurodegenerative disorder with unique pathology. Brain. 2014 May;137(5):1361–73¹.
+2. Raker VK, Becker C, Steinbrink K. The cAMP Pathway as Therapeutic Target in Autoimmune and Inflammatory Diseases. Front Immunol. 2016 Mar 31;7:123⁸.
+3. Urbina FL, Gupton SL. SNARE-Mediated Exocytosis in Neuronal Development. Front Mol Neurosci. 2020 Aug 7;13:133⁴.
+4. Nelson T, Zhang L-X, Guo H, Nacul L, Song X. Brainstem Abnormalities in Myalgic Encephalomyelitis/Chronic Fatigue Syndrome: A Scoping Review and Evaluation of Magnetic Resonance Imaging Findings. Front Neurol. 2021 Dec 17;12:769511[^10^].
+5. Wirth KJ, Scheibenbogen C, Paul F. An attempt to explain the neurological symptoms of Myalgic Encephalomyelitis/Chronic Fatigue Syndrome. J Transl Med. 2021 Nov 22;19:471¹¹.
+
+## Differentially methylated regions (DMR)
+Often, Single CpG is less informative than region (DMR). There are different methods such as bumphunter function in minfi package, and, the dmrcate in the DMRcate package to find the DMRs. Here we will start from our matrix of M-values instead of beta-values (if you want, you can try both). For this kind of analysis, this matrix has to be annotated with the chromosomal position of the CpGs and their gene annotations. Because in a first step the limma differential methylation analysis for single CpGs will be run again, we need to specify the design matrix and contrast of interest.
+
+```{r DMR, eval=TRUE, echo=TRUE}
+# Setting up the design matrix for differential analysis
+design <- model.matrix(~ group, data = samples)
+colnames(design)
+
+# Annotating the M-values with genomic information and adjusting FDR in cpg.annotate()
+adjustedFDR <- 0.1  # Adjust this value as needed
+myAnnotation <- cpg.annotate(object = mVals.corrected,
+                             datatype = "array",
+                             what = "M",
+                             analysis.type = "differential",
+                             design = design,
+                             contrasts = FALSE,
+                             fdr = adjustedFDR,  # Adjusting FDR here
+                             coef = 2,
+                             arraytype = "450K")
+myAnnotation
+
+# Identifying DMRs using the dmrcate function
+DMRs <- dmrcate(myAnnotation, lambda = 1000, C = 2)
+DMRs
+
+# Extracting genomic ranges from the DMR results
+results.ranges <- extractRanges(DMRs, genome = "hg19")
+results.ranges
+
+# Visualizing DMRs
+pal <- brewer.pal(8, "Dark2")
+groups <- col1[1:length(unique(samples$Sample_Group))]
+names(groups) <- levels(factor(samples$Sample_Group))
+cols <- groups[as.character(factor(samples$Sample_Group))]
+
+# Visualizing the second DMR
+DMR.plot(ranges = results.ranges,
+         dmr = 1,
+         CpGs = mSetSqFlt,
+         phen.col = cols,
+         genome = "hg19")
+```
+
+# 9. Pathway enrichment analysis on DMG list
+After we have performed differential methylation analysis, we get long list of significant CpG sites to interpret. One important question is, “which gene pathways are over-represented for differentially methylated CpGs?” Sometimes, it can be easy to link the top DMCs to genes that make biological sense in terms of the cell types or samples being studied, but there may be many thousands of CpGs significantly differentially methylated. In order to gain an understanding of the biological processes that the differentially methylated CpGs may be involved in, we can perform gene ontology or KEGG pathway analysis using the gometh function in the missMethyl package.
+
+## Gene Ontology (GO)
+The gometh takes into account the varying numbers of CpGs associated with each gene on the Illumina methylation arrays. The top 20 gene ontology categories can be displayed using the topGO function. For KEGG pathway analysis, the topKEGG function can be called to display the top 20 enriched pathways.
+
+```{r GO, eval=TRUE, echo=TRUE}
+# Get the significant CpG sites at less than 5% FDR, using nominal p-values 
+sigCpGs <- DMCs$Name[DMCs$P.Value < 0.05 & abs(DMCs$logFC) > 0.2]
+
+# First 10 significant CpGs
+sigCpGs[1:10]
+
+# Total number of significant CpGs at 5% FDR
+length(sigCpGs)
+
+# Get all the CpG sites used in the analysis to form the background
+all <- DMCs$Name
+
+# Total number of CpG sites tested
+length(all)
+
+# Plot Bias resulting from different numbers of CpG probes in different genes
+par(mfrow = c(1,1))
+
+# The gst object is a data.frame with each row corresponding to the GO category being tested
+gst <- gometh(sig.cpg = sigCpGs, all.cpg = all, plot.bias = TRUE)
+
+# Manually order the gst data frame by P-value and N
+gst_ordered <- gst[order(gst$P.DE, gst$N), ]
+
+# Display the top 10 GO categories based on the sorted data frame
+head(gst_ordered, 10)
+
+# Note: The topGO and topKEGG functions have been omitted due to presisting issues encountered.
+## Top 10 GO categories
+# topGO(gst, number=10)
+## Top KEGG pathways
+# topKEGG(gst)
+## Top 10 gene sets, GO categories
+# topGSA(gst, number=10)
+```
+<span style="color:red;">Question #:</span> What does the Bias plot tells you about your DMCs and the number of CpGs per gene?
+
+<span style="color:green;">Answer</span> A bias plot serves as a graphical representation of the distribution of CpGs per gene. This is a significant aspect to consider as the number of CpGs per gene can potentially skew gene set analysis. To elaborate, genes with a higher count of CpGs are more prone to be identified as differentially methylated. This is due to the increased opportunities (CpGs) for differential methylation to be exhibited. Hence, it becomes imperative to adjust for the varying number of CpGs per gene in order to mitigate this bias.
+
+For instance, when examining Differentially Methylated CpGs (DMCs), if an enrichment of DMCs is observed in genes with a high count of CpGs, it could be an artifact of the number of CpGs per gene rather than a genuine biological signal. The bias plot, therefore, plays a crucial role in ensuring that the results observed are not merely a consequence of the variable number of CpGs per gene, but are indicative of authentic biological differences.
+
+**References:**
+
+1. Gene set enrichment analysis for genome-wide DNA methylation data. Genome Biology. Available from: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02388-x.
+2. Cell-specific characterization of the placental methylome. BMC Genomics. Available from: https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-020-07186-6.
+3. methylGSA: Gene Set Analysis for DNA Methylation Datasets - Bioconductor. Available from: https://bioconductor.org/packages/release/bioc/vignettes/methylGSA/inst/doc/methylGSA-vignette.html.
+4. Robinson Lab. Available from: https://robinsonlab.shinyapps.io/Placental_Methylome_Browser/.
+
+## Disease gene association analysis
+We will now map top DMCs to Entrez genes IDs using missMethyl getMappedEntrezIDs function. DisGeNET is a discovery platform containing one of the largest publicly available collections of genes and variants associated to human diseases. Alternatively, you can use StringDB for the DMGs list to find the important pathways.
+
+```{r MapTop_DMCs, eval=TRUE, echo=TRUE}
+# Mapping DMCs to Entrez Gene IDs
+# 'sigCpGs' are the significant CpG sites
+# 'array.type="450K"' specifies the type of methylation array used
+DMGs_mappedEz <- getMappedEntrezIDs(sigCpGs, array.type="450K")
+
+# Extracting the list of significant Entrez Gene IDs
+de <- DMGs_mappedEz$sig.eg
+
+# Performing enrichment analysis
+# 'enrichDGN' performs the enrichment analysis
+# 'pvalueCutoff = 0.1' sets the significance level for enrichment
+edo <- enrichDGN(de, pvalueCutoff = 0.1)
+
+# Viewing the enrichment analysis results
+edo
+
+# Converting Entrez IDs to human-readable gene names
+# 'setReadable' function makes the enrichment results more interpretable
+# 'org.Hs.eg.db' and 'ENTREZID' specify the database and ID type used for conversion
+edox <- setReadable(edo, 'org.Hs.eg.db', 'ENTREZID')
+
+# Displaying the first few rows of the readable enrichment analysis results
+head(edox)
+```
+
+<span style="color:red;">Question 13:</span> Find the top most enriched disease that you get?
+
+<span style="color:green;">Answer</span> Answer below:
+
+```{r Q13, eval=TRUE, echo=TRUE}
+# Displaying the topmost enriched disease or condition
+top_disease <- head(edox, 1)
+
+# Printing the topmost enriched disease
+print(top_disease)
+```
+
+<span style="color:red;">Question 14:</span> Using the top_DMGs you find in step 12, use online database StringDB to find the top KEGG and Reactome pathways. Did the gene ontology was similar to what you see in the gometh analysis above?
+
+<span style="color:green;">Answer</span> See the code below: This code will analyze the list of Entrez Gene IDs using the STRING database. It will map the Entrez IDs to STRING IDs, get protein-protein interactions for the set of genes, and then get enriched KEGG and Reactome pathways. The top pathways will be printed out. 
+
+```{r StringDB, eval=False, echo=TRUE, results='hide'}
+# Install and load the STRINGdb package
+if (!requireNamespace("STRINGdb", quietly = TRUE)) {
+  if (!requireNamespace("BiocManager", quietly = TRUE)) {
+    install.packages("BiocManager")
+  }
+  BiocManager::install("")
+}
+
+# Load the STRINGdb library
+library(STRINGdb)
+
+# Create a STRINGdb object for Homo sapiens (NCBI Taxonomy ID: 9606)
+string_db <- STRINGdb$new(version="11", species=9606, score_threshold=900)
+
+# Assuming 'de' is your list of Entrez Gene IDs from previous analysis
+# Replace 'de' with your actual list of Entrez IDs
+genes <- de  
+
+# Check if 'genes' variable contains valid Entrez IDs
+if (is.null(genes) || length(genes) == 0) {
+  stop("Gene list is empty or not defined. Please check your 'de' variable.")
+}
+
+# Load the STRING alias table
+aliases <- string_db$get_aliases()
+
+# Filter the alias table for rows where the 'alias' column matches your list of Entrez IDs
+string_ids <- aliases[aliases$alias %in% genes,]
+
+# Extract the STRING IDs
+valid_string_ids <- string_ids$STRING_id
+
+# Check if there are valid STRING IDs
+if (length(valid_string_ids) == 0) {
+  stop("No valid STRING IDs found. Check the validity of your Entrez IDs.")
+}
+
+# Get protein-protein interactions for the set of genes
+ppi <- string_db$get_interactions(valid_string_ids)
+
+# Get KEGG and Reactome pathways
+kegg_pathways <- string_db$get_enrichment(valid_string_ids, "KEGG")
+reactome_pathways <- string_db$get_enrichment(valid_string_ids, "REACTOME")
+
+# Print top pathways
+print("Top KEGG pathways:")
+print(head(kegg_pathways))
+
+print("Top Reactome pathways:")
+print(head(reactome_pathways))
+
+# Save the current workspace to a file named 'EpiAss_4.RData' in the current working directory
+# save.image(file = "EpiAss_4.RData")
+```
