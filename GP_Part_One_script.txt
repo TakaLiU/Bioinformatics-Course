@@ -1,0 +1,301 @@
+#!/bin/bash
+#SBATCH --job-name=GP_Part_One
+#SBATCH --time=12:00:00    # Adjust based on your estimation
+#SBATCH --mem=16G          # Memory allocation
+#SBATCH --nodes=1          # Specify using only one node
+#SBATCH --cpus-per-task=16 # Number of CPUs
+
+# Load necessary modules
+module load Anaconda/2022.05-nsc1
+
+# Activate Conda environment
+conda activate 16S-Part1
+
+# Analysis script
+
+# CHECK QUALITY
+# Run FastQC for quality check on raw data
+fastqc -o /proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One/quality_check_raw /proj/liu-compute-2023-21/16S_amplicon/raw_data/data2/*.fastq.gz
+
+# Run MultiQC to compile the FastQC reports into a single report
+multiqc /proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One/quality_check_raw -o /proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One/quality_check_raw
+
+# Quality Filtering and Trimming
+# Navigate to the directory containing raw data and create a file with sample names
+cd /proj/liu-compute-2023-21/16S_amplicon/raw_data/data2
+ls *fastq.gz | cut -f1-2 -d "_" > /proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One/samples
+
+# Return to the working directory for the project
+cd /proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One
+
+# The first round of trimming removes primers and trims the 5' end to a quality score of 35
+# The 'bbduk.sh' script is part of the BBTools suite and is used for read trimming
+# 'literal' specifies the sequences to trim, 'k' is the k-mer length for matching, 'ordered' keeps reads in the same order,
+# 'ktrim' specifies trimming at the left end, 'copyundefined' includes undefined bases in k-mers, 'ftm' trims to multiple of 5,
+# 'qtrim' specifies quality trimming at the left end, 'trimq' is the quality threshold, and 'minlen' is the minimum read length
+for sample in $(cat samples); do 
+    echo "Trimming sample: $sample"
+    bbduk.sh in=/proj/liu-compute-2023-21/16S_amplicon/raw_data/data2/"$sample"_L001_R1_001.fastq.gz \
+             in2=/proj/liu-compute-2023-21/16S_amplicon/raw_data/data2/"$sample"_L001_R2_001.fastq.gz \
+             out=trimmed_data/"$sample"_R1_trimmed1.fastq.gz \
+             out2=trimmed_data/"$sample"_R2_trimmed1.fastq.gz \
+             literal=CCTACGGGNGGCWGCAG,GACTACHVGGGTATCTAATCC k=17 ordered=t ktrim=l \
+             copyundefined ftm=5 qtrim=l trimq=35 minlen=100
+done 2> trimming1_stats.txt
+
+# The second round of trimming further processes the reads trimmed in the first round
+# This step trims the 3' end to a quality score of 30 to ensure all bases are of high quality
+# 'qtrim=r' specifies quality trimming at the right end
+for sample in $(cat samples); do 
+    echo "Further trimming sample: $sample"
+    bbduk.sh in=trimmed_data/"$sample"_R1_trimmed1.fastq.gz \
+             in2=trimmed_data/"$sample"_R2_trimmed1.fastq.gz \
+             out=trimmed_data/"$sample"_R1_trimmed2.fastq.gz \
+             out2=trimmed_data/"$sample"_R2_trimmed2.fastq.gz \
+             qtrim=r trimq=30 minlen=100
+done 2> trimming2_stats.txt
+
+# Check the Quality of Trimmed Data
+# Navigate to the directory containing the trimmed sequencing data
+cd /proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One/trimmed_data/
+
+# Execute FastQC on all trimmed fastq.gz files and direct the output to a specific directory
+fastqc -o /proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One/quality_check_trimmed /proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One/trimmed_data/*trimmed2.fastq.gz
+
+# Use MultiQC to aggregate individual FastQC reports into a comprehensive single report
+multiqc /proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One/quality_check_trimmed -o /proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One/quality_check_trimmed
+
+# DADA2 Pipeline
+# Change to the R output directory where you will run R commands for the DADA2 pipeline:
+setwd("/proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One/Routput")
+
+# Activate R and load the dada2 package
+library(dada2)
+packageVersion("dada2")
+
+# Setting a seed ensures that our results are reproducible
+set.seed(123)
+
+# Define the path to the directory containing the sequence files
+path <- "/proj/liu-compute-2023-21/users/x_morja/Microbiome_GP/Microbiome_GP_Part_One/trimmed_data"
+list.files(path)
+
+# Organize the filenames for forward and reverse reads
+fnFs <- sort(list.files(path, pattern="_R1_trimmed2.fastq.gz", full.names = TRUE))
+fnRs <- sort(list.files(path, pattern="_R2_trimmed2.fastq.gz", full.names = TRUE))
+
+# Extract sample names based on the filenames
+sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
+
+# Quality Filtering and Trimming
+# Set the path to the 'filtered' directory within 'trimmed_data'
+filt_path <- file.path(path, "filtered")
+
+# Create the 'filtered' directory if it does not exist
+if (!dir.exists(filt_path)) {
+  dir.create(filt_path)
+}
+
+# Define the paths for the filtered forward and reverse read files
+filtFs <- file.path(filt_path, paste0(sample.names, "_F_filt.fastq.gz"))
+filtRs <- file.path(filt_path, paste0(sample.names, "_R_filt.fastq.gz"))
+
+# Name the filtered files after the sample names for easy reference
+names(filtFs) <- sample.names
+names(filtRs) <- sample.names
+
+# Execute the filtering and trimming process, removing PhiX contamination and compressing the output
+filtered_out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, rm.phix=TRUE, compress=TRUE, verbose=TRUE)
+
+# Display the number of sequences retained after filtering
+head(filtered_out)
+
+# Convert matrix to data frame for plotting
+filtered_out_df <- as.data.frame(filtered_out)
+
+# Write the data frame to a text file
+write.table(filtered_out_df, file = "filtered_out.txt", sep = "\t", row.names = TRUE, col.names = NA, quote = FALSE)
+
+# Error Rates
+# Learn error rates for forward reads
+errF <- learnErrors(filtFs, multithread=TRUE) 
+
+# Learn error rates for reverse reads
+errR <- learnErrors(filtRs, multithread=TRUE)
+
+# Plot the estimated error rates for forward reads and save to a JPEG with high quality
+jpeg("error_plot_F.jpeg", width=800, height=800, quality=100)
+plotErrors(errF, nominalQ=TRUE)
+dev.off()
+
+# Plot the estimated error rates for reverse reads and save to a JPEG with high quality
+jpeg("error_plot_R.jpeg", width=800, height=800, quality=100)
+plotErrors(errR, nominalQ=TRUE)
+dev.off()
+
+# Dereplication and Sample Inference
+# Dereplicate the filtered sequences for forward reads
+derepFs <- derepFastq(filtFs, verbose=TRUE) # For forward reads
+
+# Dereplicate the filtered sequences for reverse reads
+derepRs <- derepFastq(filtRs, verbose=TRUE) # For reverse reads
+
+# Assign names to the dereplicated data based on sample names
+names(derepFs) <- sample.names
+names(derepRs) <- sample.names
+
+# Inferring ASVs
+# Inferring ASVs for forward reads
+dadaFs <- dada(derepFs, err=errF, multithread=TRUE, pool=FALSE)
+
+# Inferring ASVs for reverse reads
+dadaRs <- dada(derepRs, err=errR, multithread=TRUE, pool=FALSE)
+
+# Inspect the first inferred ASVs for forward and reverse reads
+dadaFs[[1]]
+dadaRs[[1]]
+
+# Print out ASV inference results for forward reads
+for(i in seq_along(dadaFs)) {
+  cat("Sample", names(dadaFs[i]), "- Forward\n")
+  print(dadaFs[[i]])
+  cat("\n")
+}
+
+# Print out ASV inference results for reverse reads
+for(i in seq_along(dadaRs)) {
+  cat("Sample", names(dadaRs[i]), "- Reverse\n")
+  print(dadaRs[[i]])
+  cat("\n")
+}
+
+# Merging Paired Reads
+# Merging paired reads with DADA2
+mergers <- mergePairs(dadaFs, derepFs, dadaRs, derepRs, trimOverhang=TRUE, verbose=TRUE)
+
+# Write merged sequences to CSV files for each sample
+for(i in seq_along(mergers)) {
+  # Construct the file name based on the sample name
+  file_name <- paste0("Sample", names(mergers[i]), "_merged_sequences.csv")
+  
+  # Write the merged sequences to a CSV file
+  write.csv(mergers[[i]], file=file_name)
+}
+
+# Constructing the ASV Table
+# Construct the ASV table from merged sequences
+seqtab <- makeSequenceTable(mergers)
+dim(seqtab) # View dimensions of the sequence table
+
+# Inspect the distribution of sequence lengths
+table(nchar(getSequences(seqtab)))
+
+# Save the distribution of sequence lengths to a text file
+write.table(table(nchar(getSequences(seqtab))), "seqlength_distribution.txt", sep="\t")
+
+# Plot the distribution of sequence lengths
+require(ggplot2)
+length_table <- as.data.frame(table(nchar(colnames(seqtab))))
+colnames(length_table) <- c("LENGTH", "COUNT")
+p1 <- ggplot(length_table, aes(x=LENGTH, y=COUNT)) +
+  geom_bar(stat="identity") +
+  ggtitle("Distribution of Sequence Lengths") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  theme(axis.text.y=element_text(size=12))
+
+# Save the plot as a high-quality JPEG with a width of 1200 pixels and a height of 1200 pixels
+jpeg("sequence_length_distribution.jpeg", width = 1200, height = 1200, quality = 100)
+print(p1 + scale_y_log10()) # Log scale for better visualization
+dev.off()
+
+# Filter out sequences outside the expected length range
+seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% seq(300, 460)]
+
+# Reinspect the distribution of sequence lengths after filtering
+length_table2 <- as.data.frame(table(nchar(colnames(seqtab2))))
+colnames(length_table2) <- c("LENGTH", "COUNT")
+p2 <- ggplot(length_table2, aes(x=LENGTH, y=COUNT)) +
+  geom_bar(stat="identity") +
+  ggtitle("Filtered Distribution of Sequence Lengths") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  theme(axis.text.y=element_text(size=12))
+
+# Save the filtered plot as a high-quality JPEG with a width of 1200 pixels and a height of 1200 pixels
+jpeg("filtered_sequence_length_distribution.jpeg", width = 1200, height = 1200, quality = 100)
+print(p2 + scale_y_log10()) # Log scale for better visualization
+dev.off()
+
+# Chimera Identification and Removal
+# Remove chimeric sequences from the ASV table
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+dim(seqtab.nochim) # View dimensions of the non-chimeric sequence table
+
+# Calculate and print the proportion of sequences remaining after chimera removal
+non_chimeric_proportion <- sum(seqtab.nochim) / sum(seqtab)
+cat("Proportion of non-chimeric sequences:", non_chimeric_proportion, "\n")
+
+# Estimate the total initial abundance before chimera removal
+total_initial_abundance <- sum(seqtab) / (1 - non_chimeric_proportion)
+
+# Calculate and print the abundance of sequences lost to chimera removal
+abundance_lost <- total_initial_abundance - sum(seqtab.nochim)
+cat("Number of sequences lost to chimera removal:", total_initial_abundance - sum(seqtab.nochim), "\n")
+cat("Total abundance of lost sequences:", abundance_lost, "\n")
+
+# Tracking Reads Through the Pipeline
+# Define a function to sum the unique reads for a given sample
+getN <- function(x) sum(getUniques(x))
+
+# Create a summary table to track the read counts through the pipeline stages
+summary_tab <- data.frame(
+  row.names = sample.names,
+  dada2_input = filtered_out[,1],
+  filtered = filtered_out[,2],
+  denoisedF = sapply(dadaFs, getN),
+  denoisedR = sapply(dadaRs, getN),
+  merged = sapply(mergers, getN),
+  nonchim = rowSums(seqtab.nochim),
+  final_perc_reads_retained = round(rowSums(seqtab.nochim) / filtered_out[,1] * 100, 1)
+)
+
+# Write the summary table to a text file
+write.table(summary_tab, "summary_tab_pseudo.txt", sep="\t")
+
+# Write the summary table to a TSV file for easy sharing and further analysis
+write.table(summary_tab, "read-count-tracking.tsv", quote=FALSE, sep="\t", col.names=NA)
+
+# Taxonomy Assignment
+# Assign taxonomy using the DADA2 package and the Silva reference database
+taxa <- assignTaxonomy(seqtab.nochim, "/proj/liu-compute-2023-21/16S_amplicon/RefSeq_silva/silva_nr99_v138.1_train_set.fa.gz", multithread=TRUE, tryRC=TRUE, minBoot=80)
+
+# Add species-level identification to the assigned taxonomy
+taxa <- addSpecies(taxa, "/proj/liu-compute-2023-21/16S_amplicon/RefSeq_silva/silva_nr99_v138.1_wSpecies_train_set.fa.gz", allowMultiple=TRUE)
+
+# Inspect the first few entries of the taxonomy assignment
+taxa.print <- taxa # Copy the taxa object for display purposes
+rownames(taxa.print) <- NULL # Remove sequence rownames for a cleaner display
+head(taxa.print)
+
+# Data Retrieval
+# Renaming sequence headers to a more manageable format (ASV_1, ASV_2, ...)
+asv_seqs <- colnames(seqtab.nochim)
+asv_headers <- vector("character", length(asv_seqs))
+
+for (i in seq_along(asv_seqs)) {
+  asv_headers[i] <- paste(">ASV", i, sep="_")
+}
+
+# Creating a count table for ASVs
+asv_tab <- t(seqtab.nochim)
+row.names(asv_tab) <- sub(">", "", asv_headers)
+write.table(asv_tab, "ASVs_counts.txt", sep="\t", quote=FALSE, col.names=NA)
+
+# Creating a taxonomy table for ASVs
+asv_tax <- taxa
+row.names(asv_tax) <- sub(">", "", asv_headers)
+write.table(asv_tax, "ASVs_taxonomy.txt", sep="\t", quote=FALSE, col.names=NA)
+
+
+
